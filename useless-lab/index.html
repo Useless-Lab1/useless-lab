@@ -5,13 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Useless Lab | 쓸데없는 실험실</title>
   <meta name="description" content="전 세계에서 가장 쓸데없는 실험에 가장 진심인 나라는 어디일까요? 무료로 참여하고 국가 랭킹을 올려보세요." />
-
-  <!-- OG / SNS 공유 -->
   <meta property="og:title" content="Useless Lab — 쓸데없는 월드컵" />
   <meta property="og:description" content="당신의 참여가 세상을 바꾸진 못합니다. 하지만 당신의 나라를 더 쓸데없게 만들 수는 있습니다." />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
-
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     /* ─── 토큰 ─── */
     :root {
@@ -1334,8 +1332,14 @@
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
+/* ─── SUPABASE ─── */
+const SUPABASE_URL = "https://nufiixhgwzsaabfohmcz.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im51ZmlpeGhnd3pzYWFiZm9obWN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NTY2NzAsImV4cCI6MjA5NjIzMjY3MH0.p87rUqL7_r_HzJFOR4R1BCR-zf2hgDHJ1Uxn_bBqoZA";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 /* ─── 상수 ─── */
 const COUNTRIES = [
   { code:"KR", kr:"대한민국", en:"South Korea",    flag:"🇰🇷" },
@@ -1353,387 +1357,317 @@ const COUNTRIES = [
   { code:"OT", kr:"기타",     en:"Other",           flag:"🌍" },
 ];
 
-/* 유료 전환 시: price_krw / price_usd 활성화 */
 const TIERS = [
-  { id:"basic",     name:"기본 낭비",     pts:1,  desc:"그냥 참여합니다. 이유는 없습니다.",
+  { id:"basic",     name:"기본 낭비",   pts:1,  desc:"그냥 참여합니다. 이유는 없습니다.",
     price_free:"무료", price_krw:1000,  price_usd:1  },
-  { id:"serious",   name:"진심 낭비",     pts:3,  desc:"진심으로 쓸데없이 참여합니다.", badge:"추천",
+  { id:"serious",   name:"진심 낭비",   pts:3,  desc:"진심으로 쓸데없이 참여합니다.", badge:"추천",
     price_free:"무료", price_krw:3000,  price_usd:3  },
-  { id:"boost",     name:"국가 부스터",   pts:10, desc:"내 나라를 위한 쓸데없는 희생.",
+  { id:"boost",     name:"국가 부스터", pts:10, desc:"내 나라를 위한 쓸데없는 희생.",
     price_free:"무료", price_krw:10000, price_usd:10 },
-  { id:"legendary", name:"전설의 바보",   pts:50, desc:"역사에 이름을 남깁니다. 아무도 모르게.", badge:"레전드",
+  { id:"legendary", name:"전설의 바보", pts:50, desc:"역사에 이름을 남깁니다. 아무도 모르게.", badge:"레전드",
     price_free:"무료", price_krw:50000, price_usd:50 },
 ];
 
-const INIT_ENTRIES = [
-  { id:1, country:"US", nick:"BigWaster",   msg:"America wastes nothing — except everything.", pts:3,  ts: Date.now()-1000*60*4  },
-  { id:2, country:"JP", nick:"匿名",         msg:"静かに参加しました。",                          pts:1,  ts: Date.now()-1000*60*11 },
-  { id:3, country:"KR", nick:"초기참여자",   msg:"한국 1위 가자 ㅋㅋㅋ",                           pts:10, ts: Date.now()-1000*60*20 },
-  { id:4, country:"BR", nick:"memeiro",     msg:"Brazil suddenly got serious.",               pts:1,  ts: Date.now()-1000*60*32 },
-  { id:5, country:"GB", nick:"tea",         msg:"Absolutely pointless. Lovely.",              pts:1,  ts: Date.now()-1000*60*45 },
-  { id:6, country:"DE", nick:"Ordnung",     msg:"Ich nehme das sehr ernst.",                  pts:3,  ts: Date.now()-1000*60*61 },
-];
-
 /* ─── STATE ─── */
-const KEY = "uselesslab_v2";
-
-function loadState() {
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (raw) return JSON.parse(raw);
-  } catch {}
-  const s = { entries: INIT_ENTRIES.map(e=>({...e})), nextId: INIT_ENTRIES.length+1 };
-  localStorage.setItem(KEY, JSON.stringify(s));
-  return s;
-}
-
-function saveState(s) { localStorage.setItem(KEY, JSON.stringify(s)); }
-
-let state = loadState();
-
-/* ─── FORM STATE ─── */
+let entries = [];
 let form = { country:"KR", nick:"", msg:"", anon:false, tierId:"basic" };
 let currentStep = 1;
 
 /* ─── HELPERS ─── */
 const $ = id => document.getElementById(id);
 function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function getCountry(code){ return COUNTRIES.find(c=>c.code===code)||COUNTRIES[COUNTRIES.length-1]; }
+function getTier(id){ return TIERS.find(t=>t.id===id)||TIERS[0]; }
 
-function getCountry(code) { return COUNTRIES.find(c=>c.code===code)||COUNTRIES[COUNTRIES.length-1]; }
-function getTier(id) { return TIERS.find(t=>t.id===id)||TIERS[0]; }
-
-function timeAgo(ts) {
-  const d = Math.max(1, Math.floor((Date.now()-ts)/1000));
-  if (d<60) return "방금 전";
-  if (d<3600) return Math.floor(d/60)+"분 전";
-  if (d<86400) return Math.floor(d/3600)+"시간 전";
+function timeAgo(ts){
+  const d=Math.max(1,Math.floor((Date.now()-new Date(ts).getTime())/1000));
+  if(d<60) return "방금 전";
+  if(d<3600) return Math.floor(d/60)+"분 전";
+  if(d<86400) return Math.floor(d/3600)+"시간 전";
   return Math.floor(d/86400)+"일 전";
 }
 
-function getRankings() {
-  const map = {};
-  COUNTRIES.forEach(c=>{ map[c.code]={...c, pts:0, count:0}; });
-  state.entries.forEach(e=>{
-    if (!map[e.country]) map[e.country]={...getCountry("OT"), pts:0, count:0};
-    map[e.country].pts += Number(e.pts||1);
-    map[e.country].count++;
+function showToast(msg){
+  const t=$("toast"); t.textContent=msg;
+  t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),2000);
+}
+
+/* ─── SUPABASE 함수 ─── */
+async function fetchEntries(){
+  const {data,error} = await sb.from("entries").select("*").order("created_at",{ascending:false}).limit(100);
+  if(error){ console.error(error); return; }
+  entries = data||[];
+  render();
+}
+
+async function insertEntry(payload){
+  const {data,error} = await sb.from("entries").insert([payload]).select().single();
+  if(error){ console.error(error); showToast("오류가 발생했습니다."); return null; }
+  entries.unshift(data);
+  render();
+  return data;
+}
+
+/* ─── 실시간 구독 ─── */
+function subscribeRealtime(){
+  sb.channel("entries-live")
+    .on("postgres_changes",{event:"INSERT",schema:"public",table:"entries"},payload=>{
+      const exists = entries.find(e=>e.id===payload.new.id);
+      if(!exists){ entries.unshift(payload.new); render(); }
+    })
+    .subscribe();
+}
+
+/* ─── 랭킹 계산 ─── */
+function getRankings(){
+  const map={};
+  COUNTRIES.forEach(c=>{ map[c.code]={...c,pts:0,count:0}; });
+  entries.forEach(e=>{
+    if(!map[e.country_code]) map[e.country_code]={...getCountry("OT"),pts:0,count:0};
+    map[e.country_code].pts+=Number(e.points||1);
+    map[e.country_code].count++;
   });
   return Object.values(map).sort((a,b)=>b.pts-a.pts||b.count-a.count);
 }
 
-function showToast(msg) {
-  const t = $("toast");
-  t.textContent = msg;
-  t.classList.add("show");
-  setTimeout(()=>t.classList.remove("show"), 2000);
-}
-
 /* ─── RENDER ─── */
-function render() {
+function render(){
   renderStats();
   renderRanking();
   renderLogs();
   renderTaunt();
 }
 
-function renderStats() {
-  const total = state.entries.length;
-  const pts   = state.entries.reduce((s,e)=>s+Number(e.pts||1),0);
-  const cntrs = new Set(state.entries.map(e=>e.country)).size;
-  $("statTotal").textContent    = total.toLocaleString();
-  $("statCountries").textContent= cntrs.toLocaleString();
-  $("statPoints").textContent   = pts.toLocaleString();
+function renderStats(){
+  const total=entries.length;
+  const pts=entries.reduce((s,e)=>s+Number(e.points||1),0);
+  const cntrs=new Set(entries.map(e=>e.country_code)).size;
+  $("statTotal").textContent=total.toLocaleString();
+  $("statCountries").textContent=cntrs.toLocaleString();
+  $("statPoints").textContent=pts.toLocaleString();
 }
 
-function renderRanking() {
-  const list = $("rankList");
-  list.innerHTML = "";
+function renderRanking(){
+  const list=$("rankList");
+  list.innerHTML="";
   getRankings().forEach((item,i)=>{
     if(item.pts<=0&&i>4) return;
-    const cls = i===0?"gold":i===1?"silver":i===2?"bronze":"";
-    const rowCls = i===0?"rank-top1":i===1?"rank-top2":i===2?"rank-top3":"";
-    const el = document.createElement("div");
-    el.className = `rank-item ${rowCls}`;
-    el.onclick = ()=>openModal(item.code);
+    const cls=i===0?"gold":i===1?"silver":i===2?"bronze":"";
+    const rowCls=i===0?"rank-top1":i===1?"rank-top2":i===2?"rank-top3":"";
+    const el=document.createElement("div");
+    el.className=`rank-item ${rowCls}`;
+    el.onclick=()=>openModal(item.code);
     el.innerHTML=`
       <div class="rank-no ${cls}">${i+1}</div>
       <div>
         <div class="rank-name">${item.flag} ${item.kr} <span style="color:var(--muted);font-size:13px;font-weight:600;">${item.en}</span></div>
         <div class="rank-sub">${item.count.toLocaleString()}명 참여</div>
       </div>
-      <div class="rank-pts">
-        ${item.pts.toLocaleString()} <small>useless pts</small>
-      </div>`;
+      <div class="rank-pts">${item.pts.toLocaleString()} <small>useless pts</small></div>`;
     list.appendChild(el);
   });
 }
 
-function renderLogs() {
-  const list = $("logList");
-  list.innerHTML = "";
-  [...state.entries]
-    .sort((a,b)=>b.ts-a.ts)
-    .slice(0,20)
-    .forEach((e,i)=>{
-      const c = getCountry(e.country);
-      const t = getTier(e.tierId||"basic");
-      const el = document.createElement("div");
-      el.className = "log-item" + (i===0?" log-new":"");
-      el.innerHTML=`${timeAgo(e.ts)} · ${c.flag} <strong>${esc(e.nick||"익명")}</strong>님이 ${c.kr}에 <strong>+${e.pts}</strong>점 추가<br /><span style="opacity:.7">${esc(e.msg||"아무 말도 남기지 않았습니다.")}</span>`;
-      list.appendChild(el);
-    });
+function renderLogs(){
+  const list=$("logList");
+  list.innerHTML="";
+  entries.slice(0,20).forEach((e,i)=>{
+    const c=getCountry(e.country_code);
+    const el=document.createElement("div");
+    el.className="log-item"+(i===0?" log-new":"");
+    el.innerHTML=`${timeAgo(e.created_at)} · ${c.flag} <strong>${esc(e.nickname||"익명")}</strong>님이 ${c.kr}에 <strong>+${e.points}</strong>점 추가<br /><span style="opacity:.7">${esc(e.message||"아무 말도 남기지 않았습니다.")}</span>`;
+    list.appendChild(el);
+  });
 }
 
-function renderTaunt() {
-  const r = getRankings();
-  const krIdx = r.findIndex(x=>x.code==="KR");
-  const kr = r[krIdx];
-  const first = r[0];
+function renderTaunt(){
+  const r=getRankings();
+  const krIdx=r.findIndex(x=>x.code==="KR");
+  const kr=r[krIdx]; const first=r[0];
   let txt;
   if(!kr||kr.pts===0){
-    txt = "대한민국은 아직 아무것도 안 했습니다.<br />한국인들 이런 거 못 참지 않나요?";
+    txt="대한민국은 아직 아무것도 안 했습니다.<br />한국인들 이런 거 못 참지 않나요?";
   } else if(kr.code===first.code){
-    txt = `현재 대한민국은 1위입니다.<br />이 정도면 꽤 쓸데없는 나라입니다. 방심하면 바로 밀립니다.`;
+    txt="현재 대한민국은 1위입니다.<br />이 정도면 꽤 쓸데없는 나라입니다. 방심하면 바로 밀립니다.";
   } else {
-    const gap = first.pts - kr.pts + 1;
-    txt = `현재 대한민국은 <strong>${krIdx+1}위</strong>입니다.<br />1위까지 <strong>${gap.toLocaleString()}점</strong> 남았습니다. 한국인들 이런 거 못 참지 않나요?`;
+    const gap=first.pts-kr.pts+1;
+    txt=`현재 대한민국은 <strong>${krIdx+1}위</strong>입니다.<br />1위까지 <strong>${gap.toLocaleString()}점</strong> 남았습니다. 한국인들 이런 거 못 참지 않나요?`;
   }
-  $("tauntText").innerHTML = txt;
+  $("tauntText").innerHTML=txt;
 }
 
 /* ─── MODAL ─── */
-function openModal(defaultCountry) {
-  form = { country: defaultCountry||"KR", nick:"", msg:"", anon:false, tierId:"basic" };
-  renderCountryGrid();
-  renderTierGrid();
-  $("nicknameInput").value = "";
-  $("msgInput").value = "";
-  $("anonCheck").checked = false;
-  $("understandChk").checked = false;
-  $("msgCount").textContent = "0";
+function openModal(defaultCountry){
+  form={country:defaultCountry||"KR",nick:"",msg:"",anon:false,tierId:"basic"};
+  renderCountryGrid(); renderTierGrid();
+  $("nicknameInput").value=""; $("msgInput").value="";
+  $("anonCheck").checked=false; $("understandChk").checked=false;
+  $("msgCount").textContent="0";
   goStep(1);
   $("joinModal").classList.add("open");
 }
 
-function closeModal() {
-  $("joinModal").classList.remove("open");
+function closeModal(){ $("joinModal").classList.remove("open"); }
+
+function goStep(n){
+  currentStep=n;
+  [1,2,3,4,5].forEach(i=>{ $("s"+i).classList.toggle("hidden",i!==n); });
+  [1,2,3,4].forEach(i=>{ $("p"+i).classList.toggle("on",i<=Math.min(n,4)); });
+  const titles={1:"국가 선택",2:"닉네임 입력",3:"참여 강도 선택",4:"마지막 확인",5:"참여 완료"};
+  $("modalTitleText").textContent=titles[n]||"무료 참여하기";
 }
 
-function goStep(n) {
-  currentStep = n;
-  [1,2,3,4,5].forEach(i=>{
-    $("s"+i).classList.toggle("hidden", i!==n);
-  });
-  [1,2,3,4].forEach(i=>{
-    $("p"+i).classList.toggle("on", i<=Math.min(n,4));
-  });
-  const titles = {1:"국가 선택",2:"닉네임 입력",3:"참여 강도 선택",4:"마지막 확인",5:"참여 완료"};
-  $("modalTitleText").textContent = titles[n]||"무료 참여하기";
-}
-
-function renderCountryGrid() {
-  const g = $("countryGrid");
-  g.innerHTML = "";
+function renderCountryGrid(){
+  const g=$("countryGrid"); g.innerHTML="";
   COUNTRIES.forEach(c=>{
-    const b = document.createElement("button");
-    b.className = "country-btn" + (form.country===c.code?" selected":"");
-    b.type = "button";
-    b.innerHTML = `<span class="country-flag">${c.flag}</span>${c.kr}<span class="country-sub">${c.en}</span>`;
-    b.onclick = ()=>{ form.country=c.code; renderCountryGrid(); };
+    const b=document.createElement("button");
+    b.className="country-btn"+(form.country===c.code?" selected":"");
+    b.type="button";
+    b.innerHTML=`<span class="country-flag">${c.flag}</span>${c.kr}<span class="country-sub">${c.en}</span>`;
+    b.onclick=()=>{ form.country=c.code; renderCountryGrid(); };
     g.appendChild(b);
   });
 }
 
-function renderTierGrid() {
-  const g = $("tierGrid");
-  g.innerHTML = "";
+function renderTierGrid(){
+  const g=$("tierGrid"); g.innerHTML="";
   TIERS.forEach(t=>{
-    const b = document.createElement("button");
-    b.className = "tier-card" + (form.tierId===t.id?" selected":"");
-    b.type = "button";
-    b.innerHTML = `
+    const b=document.createElement("button");
+    b.className="tier-card"+(form.tierId===t.id?" selected":"");
+    b.type="button";
+    b.innerHTML=`
       <div class="tier-name">${t.name}${t.badge?`<span class="tier-badge">${t.badge}</span>`:""}</div>
       <div class="tier-pts">+${t.pts}<small> pts</small></div>
-      <div class="tier-desc">${t.desc}</div>
-      <!-- 유료 전환 시 아래 주석 해제: <div class="tier-price-paid" style="margin-top:8px;font-size:16px;font-weight:800;">₩${t.price_krw.toLocaleString()}</div> -->
-    `;
-    b.onclick = ()=>{ form.tierId=t.id; renderTierGrid(); };
+      <div class="tier-desc">${t.desc}</div>`;
+    b.onclick=()=>{ form.tierId=t.id; renderTierGrid(); };
     g.appendChild(b);
   });
 }
 
-function buildSummary() {
-  const c = getCountry(form.country);
-  const t = getTier(form.tierId);
-  const nick = form.anon ? "익명" : (form.nick.trim()||"이름 없는 참여자");
-  const msg  = $("msgInput").value.trim()||"아무 말도 남기지 않았습니다.";
-  $("summaryBox").innerHTML = `
+function buildSummary(){
+  const c=getCountry(form.country); const t=getTier(form.tierId);
+  const nick=form.anon?"익명":(form.nick.trim()||"이름 없는 참여자");
+  const msg=$("msgInput").value.trim()||"아무 말도 남기지 않았습니다.";
+  $("summaryBox").innerHTML=`
     <div class="summary-row"><span>국가</span><strong>${c.flag} ${c.kr}</strong></div>
     <div class="summary-row"><span>닉네임</span><strong>${esc(nick)}</strong></div>
     <div class="summary-row"><span>메시지</span><strong>${esc(msg)}</strong></div>
     <div class="summary-row"><span>참여 강도</span><strong>${t.name} · +${t.pts}점</strong></div>
-    <div class="summary-row"><span>결제</span><strong style="color:var(--green);">무료 테스트</strong></div>
-  `;
+    <div class="summary-row"><span>결제</span><strong style="color:var(--green);">무료 테스트</strong></div>`;
 }
 
-function submitEntry() {
-  const c = getCountry(form.country);
-  const t = getTier(form.tierId);
-  const nick = form.anon ? "익명" : ($("nicknameInput").value.trim()||"이름 없는 참여자");
-  const msg  = $("msgInput").value.trim() || randomMsg(c.code);
+async function submitEntry(){
+  const c=getCountry(form.country); const t=getTier(form.tierId);
+  const nick=form.anon?"익명":($("nicknameInput").value.trim()||"이름 없는 참여자");
+  const msg=$("msgInput").value.trim()||randomMsg(c.code);
 
-  const entry = {
-    id: state.nextId++,
-    country: c.code,
-    nick, msg,
-    pts: t.pts,
-    tierId: t.id,
-    anon: form.anon,
-    ts: Date.now()
+  $("s4Submit").disabled=true;
+  $("s4Submit").textContent="참여 중...";
+
+  const payload={
+    country_code: c.code,
+    nickname: form.anon ? null : nick,
+    is_anonymous: form.anon,
+    message: msg,
+    points: t.pts,
+    tier_id: t.id,
   };
 
-  state.entries.push(entry);
-  saveState(state);
-  render();
-  buildCertificate(entry);
-  goStep(5);
+  const data = await insertEntry(payload);
+  $("s4Submit").disabled=false;
+  $("s4Submit").textContent="참여 완료 →";
+
+  if(data){
+    buildCertificate({...data, nick, c, t});
+    goStep(5);
+  }
 }
 
-function buildCertificate(e) {
-  const c = getCountry(e.country);
-  const t = getTier(e.tierId||"basic");
-  $("certBody").innerHTML = `<strong>${esc(e.nick)}</strong> 님은<br />${c.flag} ${c.kr}의 쓸데없는 랭킹에<br /><strong>+${e.pts}점</strong>을 기여했습니다.`;
-  $("certMeta").innerHTML = `<div>Certificate No. #${String(e.id).padStart(6,"0")}</div><div>Season 1 · Useless World Cup</div><div>Result: Absolutely nothing happened.</div>`;
-
-  /* 공유 텍스트 저장 */
-  const shareText = `${e.nick}님이 ${c.flag} ${c.kr}의 쓸데없는 랭킹에 +${e.pts}점을 추가했습니다.\n결과: 아무 일도 일어나지 않았습니다.\n#UselessLab #쓸데없는월드컵`;
-  $("shareTextBtn").dataset.share = shareText;
+function buildCertificate(e){
+  const c=getCountry(e.country_code);
+  const nick=e.is_anonymous?"익명":(e.nickname||"이름 없는 참여자");
+  $("certBody").innerHTML=`<strong>${esc(nick)}</strong> 님은<br />${c.flag} ${c.kr}의 쓸데없는 랭킹에<br /><strong>+${e.points}점</strong>을 기여했습니다.`;
+  $("certMeta").innerHTML=`<div>Certificate No. #${String(e.id).padStart(6,"0")}</div><div>Season 1 · Useless World Cup</div><div>Result: Absolutely nothing happened.</div>`;
+  const shareText=`${nick}님이 ${c.flag} ${c.kr}의 쓸데없는 랭킹에 +${e.points}점을 추가했습니다.\n결과: 아무 일도 일어나지 않았습니다.\n#UselessLab #쓸데없는월드컵`;
+  $("shareTextBtn").dataset.share=shareText;
 }
 
-function randomMsg(code) {
-  const pool = [
-    "아무 이유 없이 참여했습니다.",
-    "이게 왜 재밌는지 모르겠는데 일단 했습니다.",
-    "나 혼자 쓸데없으면 억울해서 친구도 부를 겁니다.",
-    "결과는 없지만 기록은 남았습니다.",
-    "국가 랭킹 올리러 왔습니다.",
-  ];
+function randomMsg(){
+  const pool=["아무 이유 없이 참여했습니다.","이게 왜 재밌는지 모르겠는데 일단 했습니다.","나 혼자 쓸데없으면 억울해서 친구도 부를 겁니다.","결과는 없지만 기록은 남았습니다.","국가 랭킹 올리러 왔습니다."];
   return pool[Math.floor(Math.random()*pool.length)];
 }
 
 /* ─── 인증서 저장 ─── */
-function downloadCertificate() {
-  const cert = $("certCard");
-  const r = cert.getBoundingClientRect();
-  const sc = 2;
-  const cv = document.createElement("canvas");
-  cv.width  = Math.floor(r.width*sc);
-  cv.height = Math.floor(r.height*sc);
-  const ctx = cv.getContext("2d");
-
-  const grd = ctx.createLinearGradient(0,0,cv.width,cv.height);
-  grd.addColorStop(0,"#6ee7b7");
-  grd.addColorStop(.55,"#93c5fd");
-  grd.addColorStop(1,"#fda4af");
-  ctx.fillStyle = grd;
-  rr(ctx,0,0,cv.width,cv.height,40*sc); ctx.fill();
-
-  ctx.fillStyle = "#06121e";
-  ctx.textBaseline = "top";
-  const lines = [
+function downloadCertificate(){
+  const cert=$("certCard");
+  const r=cert.getBoundingClientRect();
+  const sc=2;
+  const cv=document.createElement("canvas");
+  cv.width=Math.floor(r.width*sc); cv.height=Math.floor(r.height*sc);
+  const ctx=cv.getContext("2d");
+  const grd=ctx.createLinearGradient(0,0,cv.width,cv.height);
+  grd.addColorStop(0,"#6ee7b7"); grd.addColorStop(.55,"#93c5fd"); grd.addColorStop(1,"#fda4af");
+  ctx.fillStyle=grd;
+  rrRect(ctx,0,0,cv.width,cv.height,40*sc); ctx.fill();
+  ctx.fillStyle="#06121e"; ctx.textBaseline="top";
+  const lines=[
     ["Certificate of Useless Participation",11,"800",32,28],
-    ["쓸데없는",42,"950",32,72],
-    ["참여 증명서",42,"950",32,126],
-    [$("certBody").innerText,17,"750",32,210],
-    [$("certMeta").innerText,13,"800",32,320],
+    ["쓸데없는",42,"950",32,72],["참여 증명서",42,"950",32,126],
+    [$("certBody").innerText,17,"750",32,210],[$("certMeta").innerText,13,"800",32,320],
   ];
   lines.forEach(([txt,sz,w,x,y])=>{
-    ctx.font=`${w} ${sz*sc}px -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif`;
+    ctx.font=`${w} ${sz*sc}px -apple-system,BlinkMacSystemFont,sans-serif`;
     mlText(ctx,txt,x*sc,y*sc,(cv.width-60*sc),sz*1.5*sc);
   });
-
-  const a = document.createElement("a");
-  a.download = "useless-lab-certificate.png";
-  a.href = cv.toDataURL("image/png");
-  a.click();
+  const a=document.createElement("a");
+  a.download="useless-lab-certificate.png";
+  a.href=cv.toDataURL("image/png"); a.click();
 }
 
-function rr(ctx,x,y,w,h,r){
-  ctx.beginPath();
-  ctx.moveTo(x+r,y);
-  ctx.arcTo(x+w,y,x+w,y+h,r);
-  ctx.arcTo(x+w,y+h,x,y+h,r);
-  ctx.arcTo(x,y+h,x,y,r);
-  ctx.arcTo(x,y,x+w,y,r);
-  ctx.closePath();
+function rrRect(ctx,x,y,w,h,r){
+  ctx.beginPath(); ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
 }
 
 function mlText(ctx,text,x,y,maxW,lh){
   String(text).split("\n").forEach(raw=>{
-    const words=raw.split(" ");
-    let line="";
-    words.forEach(w=>{
-      const test=line?line+" "+w:w;
-      if(ctx.measureText(test).width>maxW&&line){ctx.fillText(line,x,y);y+=lh;line=w;}
-      else{line=test;}
-    });
-    ctx.fillText(line,x,y);y+=lh;
+    const words=raw.split(" "); let line="";
+    words.forEach(w=>{ const test=line?line+" "+w:w; if(ctx.measureText(test).width>maxW&&line){ctx.fillText(line,x,y);y+=lh;line=w;}else{line=test;} });
+    ctx.fillText(line,x,y); y+=lh;
   });
 }
 
-/* ─── 이벤트 바인딩 ─── */
-["heroJoinBtn","navJoinBtn","expJoinBtn"].forEach(id=>{
-  $(id).onclick = ()=>openModal("KR");
-});
-
-$("krJoinBtn").onclick    = ()=>openModal("KR");
-$("closeModalBtn").onclick= closeModal;
+/* ─── 이벤트 ─── */
+["heroJoinBtn","navJoinBtn","expJoinBtn"].forEach(id=>{ $(id).onclick=()=>openModal("KR"); });
+$("krJoinBtn").onclick=()=>openModal("KR");
+$("closeModalBtn").onclick=closeModal;
 $("joinModal").addEventListener("click",e=>{ if(e.target===$("joinModal")) closeModal(); });
 document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeModal(); });
-
-$("s1Next").onclick = ()=>goStep(2);
-$("s2Back").onclick = ()=>goStep(1);
-$("s2Next").onclick = ()=>{
-  form.nick = $("nicknameInput").value;
-  form.anon = $("anonCheck").checked;
-  goStep(3);
-};
-$("s3Back").onclick = ()=>goStep(2);
-$("s3Next").onclick = ()=>{ buildSummary(); goStep(4); };
-$("s4Back").onclick = ()=>goStep(3);
-$("s4Submit").onclick = ()=>{
+$("s1Next").onclick=()=>goStep(2);
+$("s2Back").onclick=()=>goStep(1);
+$("s2Next").onclick=()=>{ form.nick=$("nicknameInput").value; form.anon=$("anonCheck").checked; goStep(3); };
+$("s3Back").onclick=()=>goStep(2);
+$("s3Next").onclick=()=>{ buildSummary(); goStep(4); };
+$("s4Back").onclick=()=>goStep(3);
+$("s4Submit").onclick=()=>{
   if(!$("understandChk").checked){ showToast("쓸데없다는 사실을 먼저 인정해주세요 ✓"); return; }
   submitEntry();
 };
-
-$("msgInput").addEventListener("input",e=>{
-  $("msgCount").textContent = e.target.value.length;
-});
-
-$("shareTextBtn").onclick = async()=>{
-  const txt = $("shareTextBtn").dataset.share||"Useless Lab에 참여했습니다. #UselessLab";
-  try {
-    await navigator.clipboard.writeText(txt);
-    showToast("공유 문구가 복사되었습니다 ✓");
-  } catch {
-    showToast("복사 실패 — 직접 선택해 복사해주세요");
-  }
+$("msgInput").addEventListener("input",e=>{ $("msgCount").textContent=e.target.value.length; });
+$("shareTextBtn").onclick=async()=>{
+  const txt=$("shareTextBtn").dataset.share||"Useless Lab에 참여했습니다. #UselessLab";
+  try{ await navigator.clipboard.writeText(txt); showToast("공유 문구가 복사되었습니다 ✓"); }
+  catch{ showToast("복사 실패 — 직접 선택해 복사해주세요"); }
 };
-
-$("downloadCertBtn").onclick = downloadCertificate;
-
-$("againBtn").onclick = ()=>openModal(form.country);
-
-$("resetBtn").onclick = ()=>{
-  if(!confirm("데모 데이터를 초기화할까요?")) return;
-  state = { entries: INIT_ENTRIES.map(e=>({...e})), nextId: INIT_ENTRIES.length+1 };
-  saveState(state);
-  render();
-  showToast("초기화되었습니다");
-};
+$("downloadCertBtn").onclick=downloadCertificate;
+$("againBtn").onclick=()=>openModal(form.country);
+$("resetBtn").onclick=()=>{ showToast("서버 연동 버전에서는 초기화가 없습니다 ✓"); };
 
 /* ─── INIT ─── */
-render();
+fetchEntries();
+subscribeRealtime();
 </script>
 </body>
 </html>
