@@ -1029,10 +1029,37 @@ function showLockout() {
 }
 
 async function doLogin() {
-  startSession();
-  showAdmin();
-}
+  if(isLockedOut()){ showLockout(); return; }
 
+  const pw = $("pwInput").value;
+  if(!pw){ $("loginError").textContent="비밀번호를 입력해주세요."; return; }
+
+  const hash = await sha256(pw);
+  const correct = getAuthHash();
+
+  if(hash === correct) {
+    setAttempts({count:0,last:Date.now()});
+    setLockout(0);
+    startSession();
+    showAdmin();
+  } else {
+    const a = getAttempts();
+    a.count++;
+    a.last = Date.now();
+    setAttempts(a);
+    renderAttemptDots(a.count);
+
+    if(a.count >= MAX_ATTEMPTS) {
+      setLockout(Date.now() + LOCKOUT_MS);
+      showLockout();
+    } else {
+      const left = MAX_ATTEMPTS - a.count;
+      $("loginError").textContent = `비밀번호가 틀렸습니다. 남은 시도: ${left}회`;
+      $("pwInput").value = "";
+      $("pwInput").focus();
+    }
+  }
+}
 /* ════════════════════════════════════
    어드민 진입
 ═══════════════════════════════════════ */
