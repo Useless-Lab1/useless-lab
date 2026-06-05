@@ -2,1016 +2,267 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>Useless Lab | 쓸데없는 실험실</title>
-  <meta name="description" content="전 세계에서 가장 쓸데없는 실험에 가장 진심인 나라는 어디일까요? 무료로 참여하고 국가 랭킹을 올려보세요." />
+  <meta name="description" content="전 세계에서 가장 쓸데없는 실험에 가장 진심인 나라는 어디일까요?" />
   <meta property="og:title" content="Useless Lab — 쓸데없는 월드컵" />
   <meta property="og:description" content="당신의 참여가 세상을 바꾸진 못합니다. 하지만 당신의 나라를 더 쓸데없게 만들 수는 있습니다." />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
+  <meta name="robots" content="index, follow" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    /* ─── 토큰 ─── */
     :root {
-      --bg: #080c14;
-      --surface: #0e1420;
-      --surface2: #141c2e;
-      --surface3: #1a2238;
-      --text: #f0f4ff;
-      --muted: #7a87a8;
-      --subtle: #3a4562;
-      --line: rgba(255,255,255,.09);
-      --line2: rgba(255,255,255,.14);
-      --green: #6ee7b7;
-      --blue: #93c5fd;
-      --pink: #fda4af;
-      --yellow: #fcd34d;
-      --red: #f87171;
-      --radius: 20px;
-      --radius-sm: 12px;
-      --shadow: 0 32px 80px rgba(0,0,0,.5);
-    }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    /* 배경 그라디언트 */
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background:
-        radial-gradient(ellipse 60% 40% at 15% 0%, rgba(110,231,183,.10) 0%, transparent 55%),
-        radial-gradient(ellipse 50% 35% at 85% 5%, rgba(147,197,253,.12) 0%, transparent 50%),
-        radial-gradient(ellipse 40% 30% at 50% 95%, rgba(253,164,175,.08) 0%, transparent 50%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    a { color: inherit; text-decoration: none; }
-    button, input, textarea { font-family: inherit; }
-
-    .wrap {
-      width: min(1100px, calc(100% - 40px));
-      margin: 0 auto;
-      position: relative;
-      z-index: 1;
-    }
-
-    /* ─── NAV ─── */
-    .nav {
-      position: sticky;
-      top: 0;
-      z-index: 40;
-      backdrop-filter: blur(20px) saturate(1.4);
-      -webkit-backdrop-filter: blur(20px) saturate(1.4);
-      background: rgba(8,12,20,.78);
-      border-bottom: 1px solid var(--line);
-    }
-
-    .nav-inner {
-      height: 68px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 18px;
-      font-weight: 900;
-      letter-spacing: -.05em;
-    }
-
-    .brand-icon {
-      width: 36px; height: 36px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, var(--green), var(--blue));
-      display: grid;
-      place-items: center;
-      font-size: 18px;
-      box-shadow: 0 8px 24px rgba(110,231,183,.22);
-    }
-
-    .nav-links {
-      display: flex;
-      gap: 4px;
-      align-items: center;
-    }
-
-    .nav-links a {
-      padding: 8px 14px;
-      border-radius: 999px;
-      font-size: 14px;
-      color: var(--muted);
-      transition: all .15s;
-    }
-
-    .nav-links a:hover {
-      background: rgba(255,255,255,.07);
-      color: var(--text);
-    }
-
-    .nav-cta {
-      background: linear-gradient(135deg, var(--green), var(--blue));
-      color: #07111f !important;
-      font-weight: 800;
-      padding: 9px 18px !important;
-      box-shadow: 0 8px 24px rgba(110,231,183,.18);
-    }
-
-    .nav-cta:hover {
-      background: linear-gradient(135deg, var(--green), var(--blue)) !important;
-      transform: translateY(-1px);
-      box-shadow: 0 12px 30px rgba(110,231,183,.28) !important;
-    }
-
-    /* ─── HERO ─── */
-    .hero {
-      padding: 88px 0 64px;
-      text-align: center;
-    }
-
-    .season-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 16px;
-      border-radius: 999px;
-      border: 1px solid rgba(110,231,183,.3);
-      background: rgba(110,231,183,.08);
-      color: var(--green);
-      font-size: 13px;
-      font-weight: 800;
-      letter-spacing: .02em;
-      margin-bottom: 28px;
-    }
-
-    .season-badge::before {
-      content: "";
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      background: var(--green);
-      box-shadow: 0 0 8px var(--green);
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: .4; }
-    }
-
-    .hero h1 {
-      font-size: clamp(44px, 8vw, 96px);
-      line-height: .92;
-      letter-spacing: -.07em;
-      font-weight: 950;
-      margin-bottom: 28px;
-      max-width: 900px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .hero h1 .accent {
-      background: linear-gradient(135deg, var(--green), var(--blue));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .hero-sub {
-      font-size: clamp(16px, 2.2vw, 22px);
-      color: var(--muted);
-      line-height: 1.65;
-      max-width: 640px;
-      margin: 0 auto 40px;
-    }
-
-    .hero-sub strong { color: var(--text); }
-
-    .cta-group {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    /* ─── BUTTONS ─── */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      border: none;
-      cursor: pointer;
-      border-radius: 14px;
-      padding: 14px 22px;
-      font-size: 15px;
-      font-weight: 800;
-      transition: transform .12s, box-shadow .12s, background .12s;
-      white-space: nowrap;
-      min-height: 50px;
-    }
-
-    .btn:hover { transform: translateY(-1px); }
-    .btn:active { transform: translateY(0) scale(.98); }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--green), var(--blue));
-      color: #07111f;
-      box-shadow: 0 16px 40px rgba(110,231,183,.2);
-    }
-
-    .btn-primary:hover {
-      box-shadow: 0 20px 50px rgba(110,231,183,.32);
-    }
-
-    .btn-ghost {
-      background: rgba(255,255,255,.06);
-      color: var(--text);
-      border: 1px solid var(--line2);
-    }
-
-    .btn-ghost:hover {
-      background: rgba(255,255,255,.1);
-    }
-
-    .btn-danger {
-      background: rgba(248,113,113,.12);
-      color: #fca5a5;
-      border: 1px solid rgba(248,113,113,.25);
-    }
-
-    .btn-danger:hover {
-      background: rgba(248,113,113,.2);
-    }
-
-    .btn-sm {
-      padding: 9px 16px;
-      font-size: 13px;
-      min-height: 38px;
-      border-radius: 10px;
-    }
-
-    /* ─── STATS BAR ─── */
-    .stats-bar {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin: 48px 0 0;
-    }
-
-    .stat-card {
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 20px 22px;
-      text-align: center;
-    }
-
-    .stat-num {
-      font-size: clamp(28px, 4vw, 42px);
-      font-weight: 950;
-      letter-spacing: -.05em;
-      line-height: 1;
-      margin-bottom: 6px;
-    }
-
-    .stat-label {
-      font-size: 13px;
-      color: var(--muted);
-    }
-
-    /* ─── GRID ─── */
-    .grid-2 {
-      display: grid;
-      grid-template-columns: 1.1fr .9fr;
-      gap: 16px;
-    }
-
-    .grid-3 {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-    }
-
-    /* ─── CARD ─── */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .card-pad { padding: 28px; }
-
-    .card-glow::after {
-      content: "";
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(110,231,183,.35), transparent);
-    }
-
-    /* ─── SECTION ─── */
-    .section {
-      padding: 48px 0;
-    }
-
-    .section-header {
-      margin-bottom: 28px;
-    }
-
-    .section-header h2 {
-      font-size: clamp(30px, 4.5vw, 52px);
-      font-weight: 950;
-      letter-spacing: -.06em;
-      line-height: 1;
-      margin-bottom: 10px;
-    }
-
-    .section-desc {
-      color: var(--muted);
-      font-size: 16px;
-      line-height: 1.65;
-    }
-
-    /* ─── RANKING ─── */
-    .rank-list {
-      display: grid;
-      gap: 8px;
-    }
-
-    .rank-item {
-      display: grid;
-      grid-template-columns: 52px 1fr auto;
-      align-items: center;
-      gap: 14px;
-      padding: 16px 18px;
-      border-radius: var(--radius-sm);
-      background: var(--surface2);
-      border: 1px solid var(--line);
-      transition: border-color .15s, background .15s;
-      cursor: pointer;
-    }
-
-    .rank-item:hover {
-      border-color: var(--line2);
-      background: var(--surface3);
-    }
-
-    .rank-item.rank-top1 { border-color: rgba(252,211,77,.25); }
-    .rank-item.rank-top2 { border-color: rgba(147,197,253,.2); }
-    .rank-item.rank-top3 { border-color: rgba(253,164,175,.2); }
-
-    .rank-no {
-      width: 40px; height: 40px;
-      border-radius: 10px;
-      display: grid;
-      place-items: center;
-      font-size: 15px;
-      font-weight: 900;
-      background: var(--surface3);
-      color: var(--muted);
-    }
-
-    .rank-no.gold { background: rgba(252,211,77,.15); color: var(--yellow); }
-    .rank-no.silver { background: rgba(147,197,253,.12); color: var(--blue); }
-    .rank-no.bronze { background: rgba(253,164,175,.12); color: var(--pink); }
-
-    .rank-name {
-      font-size: 16px;
-      font-weight: 800;
-      letter-spacing: -.02em;
-    }
-
-    .rank-sub {
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 3px;
-    }
-
-    .rank-pts {
-      text-align: right;
-      font-size: 15px;
-      font-weight: 900;
-      color: var(--green);
-      white-space: nowrap;
-    }
-
-    .rank-pts small {
-      display: block;
-      font-size: 11px;
-      color: var(--muted);
-      font-weight: 600;
-    }
-
-    /* ─── TAUNT ─── */
-    .taunt-card {
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 28px;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-      height: 100%;
-    }
-
-    .taunt-label {
-      font-size: 12px;
-      font-weight: 800;
-      letter-spacing: .08em;
-      color: var(--pink);
-      text-transform: uppercase;
-    }
-
-    .taunt-text {
-      font-size: clamp(18px, 2.5vw, 24px);
-      font-weight: 800;
-      letter-spacing: -.03em;
-      line-height: 1.45;
-      flex: 1;
-    }
-
-    /* ─── HOW IT WORKS ─── */
-    .step-card {
-      background: var(--surface2);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 22px;
-      display: flex;
-      gap: 16px;
-      align-items: flex-start;
-    }
-
-    .step-num {
-      width: 38px; height: 38px;
-      min-width: 38px;
-      border-radius: 10px;
-      background: rgba(110,231,183,.1);
-      color: var(--green);
-      font-weight: 900;
-      font-size: 16px;
-      display: grid;
-      place-items: center;
-    }
-
-    .step-title {
-      font-size: 15px;
-      font-weight: 800;
-      margin-bottom: 5px;
-    }
-
-    .step-body {
-      font-size: 13px;
-      color: var(--muted);
-      line-height: 1.55;
-    }
-
-    /* ─── LOG ─── */
-    .log-list {
-      display: grid;
-      gap: 8px;
-      max-height: 380px;
-      overflow-y: auto;
-      scrollbar-width: thin;
-      scrollbar-color: var(--subtle) transparent;
-    }
-
-    .log-item {
-      padding: 13px 16px;
-      border-radius: var(--radius-sm);
-      background: var(--surface2);
-      border: 1px solid var(--line);
-      font-size: 13px;
-      color: var(--muted);
-      line-height: 1.55;
-    }
-
-    .log-item strong { color: var(--text); }
-
-    .log-item.log-new {
-      animation: fadeSlide .35s ease;
-    }
-
-    @keyframes fadeSlide {
-      from { opacity: 0; transform: translateY(-8px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    /* ─── NEXT SEASONS ─── */
-    .season-preview {
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-      padding: 18px;
-      border-radius: var(--radius-sm);
-      background: var(--surface2);
-      border: 1px solid var(--line);
-    }
-
-    .season-num {
-      min-width: 42px;
-      height: 42px;
-      border-radius: 10px;
-      background: rgba(147,197,253,.1);
-      color: var(--blue);
-      font-size: 13px;
-      font-weight: 900;
-      display: grid;
-      place-items: center;
-    }
-
-    /* ─── MODAL ─── */
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      z-index: 60;
-      background: rgba(0,0,0,.75);
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-
-    .modal-backdrop.open { display: flex; }
-
-    .modal {
-      width: min(700px, 100%);
-      max-height: min(840px, calc(100dvh - 32px));
-      overflow-y: auto;
-      background: var(--surface);
-      border: 1px solid var(--line2);
-      border-radius: 28px;
-      box-shadow: 0 48px 160px rgba(0,0,0,.7);
-      scrollbar-width: thin;
-      scrollbar-color: var(--subtle) transparent;
-    }
-
-    .modal-head {
-      position: sticky;
-      top: 0;
-      background: rgba(14,20,32,.92);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--line);
-      padding: 18px 22px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      z-index: 2;
-    }
-
-    .modal-title {
-      font-size: 18px;
-      font-weight: 900;
-      letter-spacing: -.04em;
-    }
-
-    .modal-close {
-      width: 36px; height: 36px;
-      border-radius: 10px;
-      border: 1px solid var(--line2);
-      background: transparent;
-      color: var(--text);
-      cursor: pointer;
-      font-size: 18px;
-      display: grid;
-      place-items: center;
-      transition: background .12s;
-    }
-
-    .modal-close:hover { background: rgba(255,255,255,.08); }
-
-    .modal-body { padding: 22px; }
-
-    /* ─── PROGRESS ─── */
-    .progress-bar {
-      display: flex;
-      gap: 6px;
-      margin-bottom: 22px;
-    }
-
-    .prog-dot {
-      flex: 1;
-      height: 4px;
-      border-radius: 999px;
-      background: var(--subtle);
-      transition: background .25s;
-    }
-
-    .prog-dot.on {
-      background: linear-gradient(90deg, var(--green), var(--blue));
-    }
-
-    /* ─── FORM ─── */
-    .form-group { margin-bottom: 18px; }
-
-    .form-label {
-      display: block;
-      font-size: 14px;
-      font-weight: 800;
-      margin-bottom: 8px;
-      color: var(--text);
-    }
-
-    .form-help {
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 6px;
-      line-height: 1.5;
-    }
-
-    .form-input, .form-textarea {
-      width: 100%;
-      background: var(--surface2);
-      border: 1px solid var(--line2);
-      border-radius: var(--radius-sm);
-      color: var(--text);
-      font-size: 15px;
-      padding: 13px 16px;
-      outline: none;
-      transition: border-color .15s;
-    }
-
-    .form-input:focus, .form-textarea:focus {
-      border-color: rgba(110,231,183,.5);
-    }
-
-    .form-textarea {
-      min-height: 80px;
-      resize: vertical;
-    }
-
-    .char-count {
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    /* ─── COUNTRY GRID ─── */
-    .country-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-    }
-
-    .country-btn {
-      text-align: left;
-      padding: 14px 16px;
-      border-radius: var(--radius-sm);
-      background: var(--surface2);
-      border: 1px solid var(--line);
-      color: var(--text);
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 700;
-      transition: all .12s;
-    }
-
-    .country-btn:hover {
-      border-color: var(--line2);
-      background: var(--surface3);
-    }
-
-    .country-btn.selected {
-      border-color: rgba(110,231,183,.6);
-      background: rgba(110,231,183,.08);
-      color: var(--green);
-    }
-
-    .country-flag { font-size: 20px; margin-right: 8px; }
-    .country-sub { font-size: 11px; color: var(--muted); font-weight: 600; display: block; margin-top: 2px; }
-
-    /* ─── TIER CARDS ─── */
-    .tier-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-    }
-
-    .tier-card {
-      position: relative;
-      text-align: left;
-      padding: 18px;
-      border-radius: var(--radius);
-      background: var(--surface2);
-      border: 1px solid var(--line);
-      color: var(--text);
-      cursor: pointer;
-      transition: all .12s;
-    }
-
-    .tier-card:hover {
-      border-color: var(--line2);
-      background: var(--surface3);
-    }
-
-    .tier-card.selected {
-      border-color: rgba(147,197,253,.6);
-      background: rgba(147,197,253,.08);
-    }
-
-    .tier-name {
-      font-size: 14px;
-      font-weight: 900;
-      margin-bottom: 6px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .tier-pts {
-      font-size: 30px;
-      font-weight: 950;
-      letter-spacing: -.05em;
-      color: var(--green);
-      margin-bottom: 4px;
-    }
-
-    .tier-pts small {
-      font-size: 13px;
-      color: var(--muted);
-      font-weight: 600;
-    }
-
-    .tier-desc {
-      font-size: 12px;
-      color: var(--muted);
-      line-height: 1.45;
-    }
-
-    .tier-badge {
-      display: inline-flex;
-      padding: 3px 8px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 800;
-      background: rgba(252,211,77,.15);
-      color: var(--yellow);
-    }
-
-    /* 유료 전환 대비 - 지금은 숨김 */
-    .tier-price-paid { display: none; }
-
-    /* ─── CHECK ROW ─── */
-    .check-row {
-      display: flex;
-      gap: 10px;
-      align-items: flex-start;
-      font-size: 13px;
-      color: var(--muted);
-      line-height: 1.55;
-      margin: 12px 0 18px;
-      cursor: pointer;
-    }
-
-    .check-row input { margin-top: 2px; accent-color: var(--green); }
-
-    /* ─── SUMMARY ─── */
-    .summary-box {
-      background: var(--surface2);
-      border: 1px solid var(--line);
-      border-radius: var(--radius-sm);
-      padding: 16px;
-      display: grid;
-      gap: 10px;
-      margin-bottom: 16px;
-    }
-
-    .summary-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      font-size: 14px;
-      color: var(--muted);
-    }
-
-    .summary-row strong { color: var(--text); text-align: right; }
-
-    /* ─── CERTIFICATE ─── */
-    .certificate {
-      border-radius: 20px;
-      padding: 28px;
-      color: #06121e;
-      background: linear-gradient(135deg, #6ee7b7 0%, #93c5fd 55%, #fda4af 100%);
-      margin-bottom: 16px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .certificate::before {
-      content: "";
-      position: absolute;
-      top: -30%; right: -10%;
-      width: 220px; height: 220px;
-      border-radius: 50%;
-      background: rgba(255,255,255,.18);
-    }
-
-    .cert-label {
-      font-size: 11px;
-      font-weight: 900;
-      letter-spacing: .14em;
-      text-transform: uppercase;
-      opacity: .65;
-    }
-
-    .cert-title {
-      font-size: clamp(34px, 6vw, 58px);
-      font-weight: 1000;
-      letter-spacing: -.08em;
-      line-height: .95;
-      margin: 14px 0 18px;
-    }
-
-    .cert-body {
-      font-size: 17px;
-      font-weight: 700;
-      line-height: 1.55;
-      max-width: 540px;
-    }
-
-    .cert-meta {
-      margin-top: 22px;
-      display: grid;
-      gap: 5px;
-      font-size: 13px;
-      font-weight: 800;
-      opacity: .75;
-    }
-
-    /* ─── FOOTER ─── */
-    .footer {
-      padding: 60px 0 80px;
-      border-top: 1px solid var(--line);
-      margin-top: 40px;
-    }
-
-    .footer-inner {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 40px;
-      align-items: start;
-    }
-
-    .footer-brand {
-      font-size: 20px;
-      font-weight: 900;
-      letter-spacing: -.05em;
-      margin-bottom: 10px;
-    }
-
-    .footer-desc {
-      font-size: 13px;
-      color: var(--muted);
-      line-height: 1.65;
-    }
-
-    .footer-links {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .footer-links a {
-      font-size: 13px;
-      color: var(--muted);
-      padding: 6px 10px;
-      border-radius: 8px;
-      border: 1px solid var(--line);
-      transition: all .12s;
-    }
-
-    .footer-links a:hover {
-      color: var(--text);
-      border-color: var(--line2);
-    }
-
-    .footer-notice {
-      font-size: 12px;
-      color: var(--subtle);
-      line-height: 1.65;
-      margin-top: 16px;
-      padding-top: 16px;
-      border-top: 1px solid var(--line);
-      grid-column: 1 / -1;
-    }
-
-    /* ─── MODAL STEP NAV ─── */
-    .step-nav {
-      display: flex;
-      gap: 8px;
-      margin-top: 18px;
-    }
-
-    /* ─── TOAST ─── */
-    .toast {
-      position: fixed;
-      bottom: 28px;
-      left: 50%;
-      transform: translateX(-50%) translateY(16px);
-      opacity: 0;
-      pointer-events: none;
-      background: var(--surface3);
-      border: 1px solid var(--line2);
-      border-radius: 14px;
-      padding: 12px 18px;
-      font-size: 14px;
-      box-shadow: var(--shadow);
-      z-index: 90;
-      transition: all .2s ease;
-      white-space: nowrap;
-    }
-
-    .toast.show {
-      transform: translateX(-50%) translateY(0);
-      opacity: 1;
-    }
-
-    /* ─── HIDDEN ─── */
-    .hidden { display: none !important; }
-
-    /* ─── EXPERIMENT HERO CARD ─── */
-    .exp-card {
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 28px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .exp-card::before {
-      content: "";
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: radial-gradient(ellipse at 0% 0%, rgba(110,231,183,.10), transparent 50%);
-      pointer-events: none;
-    }
-
-    .exp-label {
-      font-size: 12px;
-      font-weight: 800;
-      color: var(--green);
-      letter-spacing: .07em;
-      text-transform: uppercase;
-      margin-bottom: 10px;
-    }
-
-    /* ─── ANONYMOUS TOGGLE ─── */
-    .anon-toggle {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      cursor: pointer;
-      padding: 12px 14px;
-      border-radius: var(--radius-sm);
-      background: var(--surface2);
-      border: 1px solid var(--line);
-      margin-bottom: 16px;
-      transition: border-color .12s;
-      user-select: none;
-    }
-    .anon-toggle:hover { border-color: var(--line2); }
-    .anon-toggle input { accent-color: var(--green); }
-    .anon-toggle span { font-size: 13px; color: var(--muted); }
-
-    /* ─── RESPONSIVE ─── */
-    @media (max-width: 860px) {
-      .grid-2, .grid-3 { grid-template-columns: 1fr; }
-      .stats-bar { grid-template-columns: repeat(3, 1fr); }
-      .nav-links { display: none; }
-      .hero { padding: 60px 0 44px; }
-      .tier-grid { grid-template-columns: 1fr; }
-      .footer-inner { grid-template-columns: 1fr; gap: 24px; }
-    }
-
-    @media (max-width: 500px) {
-      .stats-bar { grid-template-columns: 1fr; }
-      .country-grid { grid-template-columns: 1fr; }
+      --bg:#080c14; --surface:#0e1420; --surface2:#141c2e; --surface3:#1a2238;
+      --text:#f0f4ff; --muted:#7a87a8; --subtle:#3a4562;
+      --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.14);
+      --green:#6ee7b7; --blue:#93c5fd; --pink:#fda4af; --yellow:#fcd34d; --red:#f87171;
+      --radius:20px; --radius-sm:12px; --shadow:0 32px 80px rgba(0,0,0,.5);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+    body::before{content:"";position:fixed;inset:0;background:radial-gradient(ellipse 60% 40% at 15% 0%,rgba(110,231,183,.10),transparent 55%),radial-gradient(ellipse 50% 35% at 85% 5%,rgba(147,197,253,.12),transparent 50%),radial-gradient(ellipse 40% 30% at 50% 95%,rgba(253,164,175,.08),transparent 50%);pointer-events:none;z-index:0;}
+    a{color:inherit;text-decoration:none;}
+    button,input,textarea{font-family:inherit;}
+    .wrap{width:min(1100px,calc(100% - 32px));margin:0 auto;position:relative;z-index:1;}
+
+    /* NAV */
+    .nav{position:sticky;top:0;z-index:40;backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);background:rgba(8,12,20,.82);border-bottom:1px solid var(--line);}
+    .nav-inner{height:60px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+    .brand{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:900;letter-spacing:-.05em;}
+    .brand-icon{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--green),var(--blue));display:grid;place-items:center;font-size:17px;box-shadow:0 6px 20px rgba(110,231,183,.22);}
+    .nav-links{display:flex;gap:2px;align-items:center;}
+    .nav-links a{padding:7px 12px;border-radius:999px;font-size:13px;color:var(--muted);transition:all .15s;}
+    .nav-links a:hover{background:rgba(255,255,255,.07);color:var(--text);}
+    .nav-cta{background:linear-gradient(135deg,var(--green),var(--blue));color:#07111f!important;font-weight:800;padding:8px 16px!important;box-shadow:0 6px 20px rgba(110,231,183,.18);}
+    .nav-cta:hover{transform:translateY(-1px);box-shadow:0 10px 28px rgba(110,231,183,.28)!important;}
+
+    /* HERO */
+    .hero{padding:72px 0 56px;text-align:center;}
+    .season-badge{display:inline-flex;align-items:center;gap:7px;padding:6px 14px;border-radius:999px;border:1px solid rgba(110,231,183,.3);background:rgba(110,231,183,.08);color:var(--green);font-size:12px;font-weight:800;letter-spacing:.02em;margin-bottom:24px;}
+    .season-badge::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite;}
+    @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+    .hero h1{font-size:clamp(42px,8vw,92px);line-height:.92;letter-spacing:-.07em;font-weight:950;margin-bottom:24px;max-width:860px;margin-left:auto;margin-right:auto;}
+    .accent{background:linear-gradient(135deg,var(--green),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .hero-sub{font-size:clamp(15px,2.2vw,20px);color:var(--muted);line-height:1.65;max-width:580px;margin:0 auto 36px;}
+    .hero-sub strong{color:var(--text);}
+    .cta-group{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+
+    /* BUTTONS */
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:none;cursor:pointer;border-radius:14px;padding:13px 20px;font-size:15px;font-weight:800;transition:transform .12s,box-shadow .12s;white-space:nowrap;min-height:48px;}
+    .btn:hover{transform:translateY(-1px);}
+    .btn:active{transform:translateY(0) scale(.98);}
+    .btn-primary{background:linear-gradient(135deg,var(--green),var(--blue));color:#07111f;box-shadow:0 14px 36px rgba(110,231,183,.2);}
+    .btn-primary:hover{box-shadow:0 18px 44px rgba(110,231,183,.3);}
+    .btn-ghost{background:rgba(255,255,255,.06);color:var(--text);border:1px solid var(--line2);}
+    .btn-ghost:hover{background:rgba(255,255,255,.1);}
+    .btn-danger{background:rgba(248,113,113,.12);color:#fca5a5;border:1px solid rgba(248,113,113,.25);}
+    .btn-danger:hover{background:rgba(248,113,113,.2);}
+    .btn-sm{padding:8px 14px;font-size:13px;min-height:36px;border-radius:10px;}
+    .btn-share-x{background:rgba(255,255,255,.08);color:var(--text);border:1px solid var(--line2);}
+    .btn-share-copy{background:rgba(110,231,183,.1);color:var(--green);border:1px solid rgba(110,231,183,.25);}
+
+    /* STATS */
+    .stats-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:40px 0 0;}
+    .stat-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;text-align:center;}
+    .stat-num{font-size:clamp(26px,4vw,40px);font-weight:950;letter-spacing:-.05em;line-height:1;margin-bottom:5px;}
+    .stat-label{font-size:12px;color:var(--muted);}
+
+    /* GRID */
+    .grid-2{display:grid;grid-template-columns:1.1fr .9fr;gap:14px;}
+    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+
+    /* CARD */
+    .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);position:relative;overflow:hidden;}
+    .card-pad{padding:24px;}
+
+    /* SECTION */
+    .section{padding:40px 0;}
+    .section-header{margin-bottom:24px;}
+    .section-header h2{font-size:clamp(28px,4vw,48px);font-weight:950;letter-spacing:-.06em;line-height:1;margin-bottom:8px;}
+    .section-desc{color:var(--muted);font-size:15px;line-height:1.65;}
+
+    /* RANKING */
+    .rank-list{display:grid;gap:7px;}
+    .rank-item{display:grid;grid-template-columns:48px 1fr auto;align-items:center;gap:12px;padding:14px 16px;border-radius:var(--radius-sm);background:var(--surface2);border:1px solid var(--line);transition:all .15s;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+    .rank-item:hover,.rank-item:active{border-color:var(--line2);background:var(--surface3);}
+    .rank-item.rank-top1{border-color:rgba(252,211,77,.22);}
+    .rank-item.rank-top2{border-color:rgba(147,197,253,.18);}
+    .rank-item.rank-top3{border-color:rgba(253,164,175,.18);}
+    .rank-no{width:38px;height:38px;border-radius:9px;display:grid;place-items:center;font-size:14px;font-weight:900;background:var(--surface3);color:var(--muted);}
+    .rank-no.gold{background:rgba(252,211,77,.15);color:var(--yellow);}
+    .rank-no.silver{background:rgba(147,197,253,.12);color:var(--blue);}
+    .rank-no.bronze{background:rgba(253,164,175,.12);color:var(--pink);}
+    .rank-name{font-size:15px;font-weight:800;letter-spacing:-.02em;}
+    .rank-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+    .rank-pts{text-align:right;font-size:14px;font-weight:900;color:var(--green);white-space:nowrap;}
+    .rank-pts small{display:block;font-size:10px;color:var(--muted);font-weight:600;}
+    .rank-tap-hint{font-size:11px;color:var(--subtle);text-align:right;margin-top:8px;}
+
+    /* 국가 상세 패널 */
+    .country-panel-backdrop{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:none;align-items:flex-end;justify-content:center;}
+    .country-panel-backdrop.open{display:flex;}
+    .country-panel{width:min(680px,100%);max-height:85dvh;overflow-y:auto;background:var(--surface);border:1px solid var(--line2);border-radius:28px 28px 0 0;padding:0 0 40px;scrollbar-width:thin;scrollbar-color:var(--subtle) transparent;animation:slideUp .28s ease;}
+    @keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+    .panel-handle{width:40px;height:4px;border-radius:999px;background:var(--subtle);margin:14px auto 0;}
+    .panel-head{padding:18px 22px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:rgba(14,20,32,.95);backdrop-filter:blur(16px);z-index:2;}
+    .panel-title-row{display:flex;align-items:center;gap:10px;}
+    .panel-flag{font-size:32px;}
+    .panel-name{font-size:20px;font-weight:900;letter-spacing:-.04em;}
+    .panel-close{width:34px;height:34px;border-radius:9px;border:1px solid var(--line2);background:transparent;color:var(--text);cursor:pointer;font-size:17px;display:grid;place-items:center;}
+    .panel-body{padding:18px 22px;}
+    .panel-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
+    .panel-stat{background:var(--surface2);border:1px solid var(--line);border-radius:var(--radius-sm);padding:14px;text-align:center;}
+    .panel-stat-val{font-size:24px;font-weight:950;letter-spacing:-.05em;}
+    .panel-stat-label{font-size:11px;color:var(--muted);margin-top:3px;}
+    .panel-log-title{font-size:13px;font-weight:800;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin-bottom:12px;}
+    .panel-log-list{display:grid;gap:7px;}
+    .panel-log-item{padding:12px 14px;border-radius:10px;background:var(--surface2);border:1px solid var(--line);font-size:13px;color:var(--muted);line-height:1.55;}
+    .panel-log-item strong{color:var(--text);}
+    .panel-join-btn{width:100%;margin-top:18px;}
+
+    /* TAUNT */
+    .taunt-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:24px;display:flex;flex-direction:column;gap:16px;height:100%;}
+    .taunt-label{font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--pink);text-transform:uppercase;}
+    .taunt-text{font-size:clamp(16px,2.5vw,22px);font-weight:800;letter-spacing:-.03em;line-height:1.45;flex:1;}
+
+    /* STEPS */
+    .step-card{background:var(--surface2);border:1px solid var(--line);border-radius:var(--radius);padding:20px;display:flex;gap:14px;align-items:flex-start;}
+    .step-num{width:36px;height:36px;min-width:36px;border-radius:9px;background:rgba(110,231,183,.1);color:var(--green);font-weight:900;font-size:15px;display:grid;place-items:center;}
+    .step-title{font-size:14px;font-weight:800;margin-bottom:4px;}
+    .step-body{font-size:12px;color:var(--muted);line-height:1.55;}
+
+    /* LOG */
+    .log-list{display:grid;gap:7px;max-height:360px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--subtle) transparent;}
+    .log-item{padding:12px 14px;border-radius:var(--radius-sm);background:var(--surface2);border:1px solid var(--line);font-size:13px;color:var(--muted);line-height:1.55;}
+    .log-item strong{color:var(--text);}
+    .log-item.log-new{animation:logSlide .4s ease;border-color:rgba(110,231,183,.25);}
+    @keyframes logSlide{from{opacity:0;transform:translateY(-10px);background:rgba(110,231,183,.06);}to{opacity:1;transform:translateY(0);background:var(--surface2);}}
+
+    /* NEXT SEASONS */
+    .season-preview{display:flex;gap:10px;align-items:flex-start;padding:16px;border-radius:var(--radius-sm);background:var(--surface2);border:1px solid var(--line);}
+    .season-num{min-width:40px;height:40px;border-radius:9px;background:rgba(147,197,253,.1);color:var(--blue);font-size:12px;font-weight:900;display:grid;place-items:center;}
+
+    /* MODAL */
+    .modal-backdrop{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:none;align-items:flex-end;justify-content:center;padding:0;}
+    .modal-backdrop.open{display:flex;}
+    .modal{width:min(700px,100%);max-height:92dvh;overflow-y:auto;background:var(--surface);border:1px solid var(--line2);border-radius:28px 28px 0 0;box-shadow:0 -20px 80px rgba(0,0,0,.5);scrollbar-width:thin;scrollbar-color:var(--subtle) transparent;}
+    .modal-handle{width:40px;height:4px;border-radius:999px;background:var(--subtle);margin:14px auto 0;}
+    .modal-head{position:sticky;top:0;background:rgba(14,20,32,.95);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--line);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:10px;z-index:2;}
+    .modal-title{font-size:17px;font-weight:900;letter-spacing:-.04em;}
+    .modal-close{width:34px;height:34px;border-radius:9px;border:1px solid var(--line2);background:transparent;color:var(--text);cursor:pointer;font-size:17px;display:grid;place-items:center;transition:background .12s;}
+    .modal-close:hover{background:rgba(255,255,255,.08);}
+    .modal-body{padding:20px;}
+
+    /* PROGRESS */
+    .progress-bar{display:flex;gap:5px;margin-bottom:20px;}
+    .prog-dot{flex:1;height:3px;border-radius:999px;background:var(--subtle);transition:background .25s;}
+    .prog-dot.on{background:linear-gradient(90deg,var(--green),var(--blue));}
+
+    /* FORM */
+    .form-group{margin-bottom:16px;}
+    .form-label{display:block;font-size:13px;font-weight:800;margin-bottom:7px;color:var(--text);}
+    .form-help{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.5;}
+    .form-input,.form-textarea{width:100%;background:var(--surface2);border:1px solid var(--line2);border-radius:var(--radius-sm);color:var(--text);font-size:15px;padding:13px 15px;outline:none;transition:border-color .15s;-webkit-appearance:none;}
+    .form-input:focus,.form-textarea:focus{border-color:rgba(110,231,183,.5);}
+    .form-textarea{min-height:76px;resize:vertical;}
+    .char-count{font-size:12px;color:var(--muted);}
+
+    /* COUNTRY GRID */
+    .country-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;}
+    .country-btn{text-align:left;padding:13px 14px;border-radius:var(--radius-sm);background:var(--surface2);border:1px solid var(--line);color:var(--text);cursor:pointer;font-size:14px;font-weight:700;transition:all .12s;-webkit-tap-highlight-color:transparent;}
+    .country-btn:hover,.country-btn:active{border-color:var(--line2);background:var(--surface3);}
+    .country-btn.selected{border-color:rgba(110,231,183,.6);background:rgba(110,231,183,.08);color:var(--green);}
+    .country-flag{font-size:19px;margin-right:7px;}
+    .country-sub{font-size:11px;color:var(--muted);font-weight:600;display:block;margin-top:1px;}
+
+    /* TIER */
+    .tier-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;}
+    .tier-card{position:relative;text-align:left;padding:16px;border-radius:var(--radius);background:var(--surface2);border:1px solid var(--line);color:var(--text);cursor:pointer;transition:all .12s;-webkit-tap-highlight-color:transparent;}
+    .tier-card:hover,.tier-card:active{border-color:var(--line2);background:var(--surface3);}
+    .tier-card.selected{border-color:rgba(147,197,253,.6);background:rgba(147,197,253,.08);}
+    .tier-name{font-size:13px;font-weight:900;margin-bottom:5px;display:flex;align-items:center;gap:5px;}
+    .tier-pts{font-size:28px;font-weight:950;letter-spacing:-.05em;color:var(--green);margin-bottom:3px;}
+    .tier-pts small{font-size:12px;color:var(--muted);font-weight:600;}
+    .tier-desc{font-size:11px;color:var(--muted);line-height:1.45;}
+    .tier-badge{display:inline-flex;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:800;background:rgba(252,211,77,.15);color:var(--yellow);}
+
+    /* ANON */
+    .anon-toggle{display:flex;align-items:center;gap:9px;cursor:pointer;padding:11px 13px;border-radius:var(--radius-sm);background:var(--surface2);border:1px solid var(--line);margin-bottom:14px;transition:border-color .12s;user-select:none;-webkit-tap-highlight-color:transparent;}
+    .anon-toggle:hover{border-color:var(--line2);}
+    .anon-toggle input{accent-color:var(--green);}
+    .anon-toggle span{font-size:13px;color:var(--muted);}
+
+    /* SUMMARY */
+    .summary-box{background:var(--surface2);border:1px solid var(--line);border-radius:var(--radius-sm);padding:14px;display:grid;gap:9px;margin-bottom:14px;}
+    .summary-row{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--muted);}
+    .summary-row strong{color:var(--text);text-align:right;}
+
+    /* CERTIFICATE */
+    .certificate{border-radius:18px;padding:24px;color:#06121e;background:linear-gradient(135deg,#6ee7b7 0%,#93c5fd 55%,#fda4af 100%);margin-bottom:14px;position:relative;overflow:hidden;}
+    .certificate::before{content:"";position:absolute;top:-30%;right:-10%;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.18);}
+    .cert-label{font-size:10px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;opacity:.65;}
+    .cert-title{font-size:clamp(30px,6vw,52px);font-weight:1000;letter-spacing:-.08em;line-height:.95;margin:12px 0 16px;}
+    .cert-body{font-size:16px;font-weight:700;line-height:1.55;max-width:500px;}
+    .cert-meta{margin-top:20px;display:grid;gap:4px;font-size:12px;font-weight:800;opacity:.75;}
+
+    /* SHARE */
+    .share-group{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+
+    /* CHECK */
+    .check-row{display:flex;gap:9px;align-items:flex-start;font-size:13px;color:var(--muted);line-height:1.55;margin:10px 0 16px;cursor:pointer;}
+    .check-row input{margin-top:2px;accent-color:var(--green);}
+
+    /* STEP NAV */
+    .step-nav{display:flex;gap:8px;margin-top:16px;}
+
+    /* EXP CARD */
+    .exp-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:24px;position:relative;overflow:hidden;}
+    .exp-card::before{content:"";position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse at 0% 0%,rgba(110,231,183,.10),transparent 50%);pointer-events:none;}
+    .exp-label{font-size:11px;font-weight:800;color:var(--green);letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px;}
+
+    /* FOOTER */
+    .footer{padding:56px 0 72px;border-top:1px solid var(--line);margin-top:40px;}
+    .footer-inner{display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:start;}
+    .footer-brand{font-size:18px;font-weight:900;letter-spacing:-.05em;margin-bottom:9px;}
+    .footer-desc{font-size:13px;color:var(--muted);line-height:1.65;}
+    .footer-links{display:flex;gap:6px;flex-wrap:wrap;}
+    .footer-links a{font-size:12px;color:var(--muted);padding:5px 9px;border-radius:7px;border:1px solid var(--line);transition:all .12s;}
+    .footer-links a:hover{color:var(--text);border-color:var(--line2);}
+    .footer-notice{font-size:11px;color:var(--subtle);line-height:1.65;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);grid-column:1/-1;}
+
+    /* TOAST */
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(12px);opacity:0;pointer-events:none;background:var(--surface3);border:1px solid var(--line2);border-radius:12px;padding:11px 17px;font-size:13px;font-weight:600;box-shadow:var(--shadow);z-index:90;transition:all .2s ease;white-space:nowrap;}
+    .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+    .hidden{display:none!important;}
+
+    /* RESPONSIVE — 모바일 우선 */
+    @media (max-width:860px){
+      .grid-2,.grid-3{grid-template-columns:1fr;}
+      .nav-links{display:none;}
+      .hero{padding:52px 0 36px;}
+      .tier-grid{grid-template-columns:1fr 1fr;}
+      .footer-inner{grid-template-columns:1fr;gap:20px;}
+      .stats-bar{gap:8px;}
+      .modal{border-radius:24px 24px 0 0;}
+      .country-panel{border-radius:24px 24px 0 0;}
+    }
+    @media (max-width:500px){
+      .stats-bar{grid-template-columns:1fr 1fr;}
+      .stat-card:last-child{grid-column:1/-1;}
+      .country-grid{grid-template-columns:1fr 1fr;}
+      .tier-grid{grid-template-columns:1fr;}
+      .share-group{grid-template-columns:1fr;}
+      .hero h1{font-size:clamp(38px,11vw,60px);}
+      .wrap{width:calc(100% - 24px);}
+      .modal-body{padding:16px;}
+      .panel-stats{grid-template-columns:repeat(3,1fr);}
     }
   </style>
 </head>
 <body>
 
-<!-- ─── NAV ─── -->
 <nav class="nav">
   <div class="wrap nav-inner">
     <a class="brand" href="#">
@@ -1028,80 +279,53 @@
   </div>
 </nav>
 
-<!-- ─── HERO ─── -->
 <main>
 <section class="hero">
   <div class="wrap">
     <div class="season-badge">Season 1 Open · 무료 테스트 중</div>
-
-    <h1>
-      가장 <span class="accent">쓸데없는</span><br />
-      사회실험
-    </h1>
-
+    <h1>가장 <span class="accent">쓸데없는</span><br />사회실험</h1>
     <p class="hero-sub">
       당신의 참여가 세상을 바꾸진 못합니다.<br />
       <strong>하지만 당신의 나라를 더 쓸데없게 만들 수는 있습니다.</strong>
     </p>
-
     <div class="cta-group">
       <button class="btn btn-primary" id="heroJoinBtn">무료로 참여하기 →</button>
       <a class="btn btn-ghost" href="#ranking">현재 랭킹 보기</a>
     </div>
-
     <div class="stats-bar">
-      <div class="stat-card">
-        <div class="stat-num" id="statTotal" style="color:var(--green);">0</div>
-        <div class="stat-label">총 참여자</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num" id="statCountries" style="color:var(--blue);">0</div>
-        <div class="stat-label">참여 국가</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num" id="statPoints" style="color:var(--pink);">0</div>
-        <div class="stat-label">쓸데없는 점수</div>
-      </div>
+      <div class="stat-card"><div class="stat-num" id="statTotal" style="color:var(--green)">0</div><div class="stat-label">총 참여자</div></div>
+      <div class="stat-card"><div class="stat-num" id="statCountries" style="color:var(--blue)">0</div><div class="stat-label">참여 국가</div></div>
+      <div class="stat-card"><div class="stat-num" id="statPoints" style="color:var(--pink)">0</div><div class="stat-label">쓸데없는 점수</div></div>
     </div>
   </div>
 </section>
 
-<!-- ─── EXPERIMENT + TAUNT ─── -->
 <section class="section">
   <div class="wrap grid-2">
     <div class="exp-card">
       <div class="exp-label">Current Experiment · Season 1</div>
-      <h2 style="font-size:clamp(28px,4vw,44px);letter-spacing:-.06em;font-weight:950;margin-bottom:14px;">
-        Useless World Cup
-      </h2>
-      <p class="section-desc" style="margin-bottom:22px;">
+      <h2 style="font-size:clamp(26px,4vw,42px);letter-spacing:-.06em;font-weight:950;margin-bottom:12px;">Useless World Cup</h2>
+      <p class="section-desc" style="margin-bottom:20px;">
         가장 쓸데없는 실험에 가장 진심인 나라는 어디일까요?<br />
-        지금은 무료 테스트입니다. 결제 대신 참여 점수와 인증서, 실시간 로그가 남습니다.
+        지금은 무료 테스트입니다. 참여 점수와 인증서, 실시간 로그가 남습니다.
       </p>
       <div class="cta-group" style="justify-content:flex-start;">
         <button class="btn btn-primary" id="expJoinBtn">내 나라 점수 올리기</button>
-        <button class="btn btn-ghost btn-sm" id="resetBtn" style="opacity:.55;">데모 초기화</button>
       </div>
     </div>
-
     <div class="taunt-card">
       <div class="taunt-label">오늘의 도발</div>
-      <div class="taunt-text" id="tauntText">
-        대한민국은 아직 아무것도 안 했습니다.<br />한국인들 이런 거 못 참지 않나요?
-      </div>
-      <button class="btn btn-danger" id="krJoinBtn">
-        🇰🇷 한국 대표로 바로 참여하기
-      </button>
+      <div class="taunt-text" id="tauntText">랭킹 불러오는 중...</div>
+      <button class="btn btn-danger" id="krJoinBtn" style="width:100%;">🏳️ 내 나라 대표로 바로 참여하기</button>
     </div>
   </div>
 </section>
 
-<!-- ─── RANKING ─── -->
 <section class="section" id="ranking">
   <div class="wrap">
     <div class="section-header">
       <h2>국가별 쓸데없는 랭킹</h2>
-      <p class="section-desc">지금은 무료 MVP. 결제형 시즌 전환 시 이 구조 그대로 유지됩니다.</p>
+      <p class="section-desc">국가 클릭 시 상세 현황과 낭비 로그를 볼 수 있습니다.</p>
     </div>
     <div class="card card-pad">
       <div class="rank-list" id="rankList"></div>
@@ -1109,124 +333,88 @@
   </div>
 </section>
 
-<!-- ─── HOW IT WORKS ─── -->
 <section class="section" id="how">
   <div class="wrap">
-    <div class="section-header">
-      <h2>참여 방법</h2>
-      <p class="section-desc">3단계면 끝. 일부러 복잡하게 만들지 않았습니다.</p>
-    </div>
+    <div class="section-header"><h2>참여 방법</h2><p class="section-desc">3단계면 끝. 일부러 복잡하게 만들지 않았습니다.</p></div>
     <div class="grid-3">
-      <div class="step-card">
-        <div class="step-num">1</div>
-        <div>
-          <div class="step-title">나라 고르기</div>
-          <div class="step-body">실제 국적과 달라도 됩니다. 이건 어차피 쓸데없는 실험입니다.</div>
-        </div>
-      </div>
-      <div class="step-card">
-        <div class="step-num">2</div>
-        <div>
-          <div class="step-title">닉네임 + 한 줄 메시지</div>
-          <div class="step-body">개인정보는 남기지 마세요. 쓸데없지만 선은 지킵니다.</div>
-        </div>
-      </div>
-      <div class="step-card">
-        <div class="step-num">3</div>
-        <div>
-          <div class="step-title">인증서 받고 공유</div>
-          <div class="step-body">나 혼자 쓸데없으면 억울하니까 친구도 끌어들이세요.</div>
-        </div>
-      </div>
+      <div class="step-card"><div class="step-num">1</div><div><div class="step-title">나라 고르기</div><div class="step-body">실제 국적과 달라도 됩니다. 어차피 쓸데없는 실험입니다.</div></div></div>
+      <div class="step-card"><div class="step-num">2</div><div><div class="step-title">닉네임 + 한 줄 메시지</div><div class="step-body">개인정보는 남기지 마세요. 쓸데없지만 선은 지킵니다.</div></div></div>
+      <div class="step-card"><div class="step-num">3</div><div><div class="step-title">인증서 받고 공유</div><div class="step-body">나 혼자 쓸데없으면 억울하니까 친구도 끌어들이세요.</div></div></div>
     </div>
   </div>
 </section>
 
-<!-- ─── LIVE LOG + NEXT SEASONS ─── -->
 <section class="section" id="logs">
   <div class="wrap grid-2">
     <div class="card card-pad">
-      <div class="section-header" style="margin-bottom:18px;">
-        <h2 style="font-size:28px;">실시간 낭비 로그</h2>
-        <p class="section-desc" style="font-size:14px;">돈은 아직 안 받지만, 쓸데없는 참여 기록은 남습니다.</p>
-      </div>
+      <div class="section-header" style="margin-bottom:16px;"><h2 style="font-size:26px;">실시간 낭비 로그</h2><p class="section-desc" style="font-size:13px;">누군가 참여하면 실시간으로 업데이트됩니다.</p></div>
       <div class="log-list" id="logList"></div>
     </div>
-
     <div class="card card-pad" id="next">
-      <div class="section-header" style="margin-bottom:18px;">
-        <h2 style="font-size:28px;">다음 시즌 예고</h2>
-        <p class="section-desc" style="font-size:14px;">쓸데없음은 계속됩니다.</p>
-      </div>
-      <div style="display:grid;gap:10px;">
-        <div class="season-preview">
-          <div class="season-num">S2</div>
-          <div>
-            <div style="font-size:14px;font-weight:800;margin-bottom:4px;">The Regret Button</div>
-            <div style="font-size:12px;color:var(--muted);">후회할 걸 알면서도 사람들은 버튼을 누를까?</div>
-          </div>
-        </div>
-        <div class="season-preview">
-          <div class="season-num">S3</div>
-          <div>
-            <div style="font-size:14px;font-weight:800;margin-bottom:4px;">Nothing Auction</div>
-            <div style="font-size:12px;color:var(--muted);">아무것도 아닌 것을 가장 비싸게 사는 사람은?</div>
-          </div>
-        </div>
-        <div class="season-preview">
-          <div class="season-num">S4</div>
-          <div>
-            <div style="font-size:14px;font-weight:800;margin-bottom:4px;">Global Confession Wall</div>
-            <div style="font-size:12px;color:var(--muted);">사람들은 어떤 쓸데없는 고백을 남길까?</div>
-          </div>
-        </div>
-        <div class="season-preview">
-          <div class="season-num">S5</div>
-          <div>
-            <div style="font-size:14px;font-weight:800;margin-bottom:4px;">The Pointless Vote</div>
-            <div style="font-size:12px;color:var(--muted);">아무 의미 없는 선택에서도 사람들은 싸울까?</div>
-          </div>
-        </div>
+      <div class="section-header" style="margin-bottom:16px;"><h2 style="font-size:26px;">다음 시즌 예고</h2><p class="section-desc" style="font-size:13px;">쓸데없음은 계속됩니다.</p></div>
+      <div style="display:grid;gap:9px;">
+        <div class="season-preview"><div class="season-num">S2</div><div><div style="font-size:13px;font-weight:800;margin-bottom:3px;">The Regret Button</div><div style="font-size:12px;color:var(--muted);">후회할 걸 알면서도 사람들은 버튼을 누를까?</div></div></div>
+        <div class="season-preview"><div class="season-num">S3</div><div><div style="font-size:13px;font-weight:800;margin-bottom:3px;">Nothing Auction</div><div style="font-size:12px;color:var(--muted);">아무것도 아닌 것을 가장 비싸게 사는 사람은?</div></div></div>
+        <div class="season-preview"><div class="season-num">S4</div><div><div style="font-size:13px;font-weight:800;margin-bottom:3px;">Global Confession Wall</div><div style="font-size:12px;color:var(--muted);">사람들은 어떤 쓸데없는 고백을 남길까?</div></div></div>
+        <div class="season-preview"><div class="season-num">S5</div><div><div style="font-size:13px;font-weight:800;margin-bottom:3px;">The Pointless Vote</div><div style="font-size:12px;color:var(--muted);">아무 의미 없는 선택에서도 사람들은 싸울까?</div></div></div>
       </div>
     </div>
   </div>
 </section>
 </main>
 
-<!-- ─── FOOTER ─── -->
 <footer class="footer">
   <div class="wrap">
     <div class="footer-inner">
       <div>
         <div class="footer-brand">🧪 Useless Lab</div>
-        <div class="footer-desc">
-          전 세계에서 가장 쓸데없는 사회실험 플랫폼.<br />
-          현재 Season 1 — Useless World Cup 진행 중.
-        </div>
+        <div class="footer-desc">전 세계에서 가장 쓸데없는 사회실험 플랫폼.<br />현재 Season 1 — Useless World Cup 진행 중.</div>
       </div>
       <div>
         <div class="footer-links">
           <a href="#ranking">랭킹</a>
           <a href="#how">참여 방법</a>
           <a href="#next">다음 시즌</a>
-          <!-- 유료화 전 준비 페이지 - 아직 비활성 -->
-          <!-- <a href="/terms">이용약관</a> -->
-          <!-- <a href="/privacy">개인정보처리방침</a> -->
-          <!-- <a href="/refund">환불정책</a> -->
         </div>
       </div>
       <div class="footer-notice">
-        이 서비스는 무료 MVP 데모입니다. 현재 실제 결제, 정산, 환불 기능이 없습니다.
-        서비스 이용 중 발생하는 모든 데이터는 브라우저 로컬에만 저장되며 서버로 전송되지 않습니다.
-        실제 서비스화 시 사업자등록 · 통신판매업 신고 · 이용약관 · 개인정보처리방침 · 결제대행사 계약이 필요합니다.
+        이 서비스는 무료 MVP 테스트입니다. 현재 실제 결제, 정산, 환불 기능이 없습니다. 서비스 이용 중 발생하는 데이터는 Supabase DB에 저장됩니다. 실제 서비스화 시 사업자등록 · 통신판매업 신고 · 이용약관 · 개인정보처리방침 · 결제대행사 계약이 필요합니다.
       </div>
     </div>
   </div>
 </footer>
 
-<!-- ─── JOIN MODAL ─── -->
-<div class="modal-backdrop" id="joinModal" role="dialog" aria-modal="true" aria-labelledby="modalTitleText">
+<!-- 국가 상세 패널 -->
+<div class="country-panel-backdrop" id="countryPanel">
+  <div class="country-panel">
+    <div class="panel-handle"></div>
+    <div class="panel-head">
+      <div class="panel-title-row">
+        <div class="panel-flag" id="panelFlag"></div>
+        <div>
+          <div class="panel-name" id="panelName"></div>
+          <div style="font-size:12px;color:var(--muted);" id="panelRank"></div>
+        </div>
+      </div>
+      <button class="panel-close" id="closePanelBtn">×</button>
+    </div>
+    <div class="panel-body">
+      <div class="panel-stats">
+        <div class="panel-stat"><div class="panel-stat-val" id="panelPts" style="color:var(--green)">0</div><div class="panel-stat-label">총 점수</div></div>
+        <div class="panel-stat"><div class="panel-stat-val" id="panelCount" style="color:var(--blue)">0</div><div class="panel-stat-label">참여자</div></div>
+        <div class="panel-stat"><div class="panel-stat-val" id="panelAvg" style="color:var(--yellow)">0</div><div class="panel-stat-label">평균 점수</div></div>
+      </div>
+      <div class="panel-log-title">최근 낭비 로그</div>
+      <div class="panel-log-list" id="panelLogList"></div>
+      <button class="btn btn-primary panel-join-btn" id="panelJoinBtn">이 나라로 참여하기 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- 참여 모달 -->
+<div class="modal-backdrop" id="joinModal" role="dialog" aria-modal="true">
   <div class="modal">
+    <div class="modal-handle"></div>
     <div class="modal-head">
       <div class="modal-title" id="modalTitleText">무료 참여하기</div>
       <button class="modal-close" id="closeModalBtn" aria-label="닫기">×</button>
@@ -1239,74 +427,54 @@
         <div class="prog-dot" id="p4"></div>
       </div>
 
-      <!-- STEP 1: 국가 선택 -->
       <div id="s1">
         <div class="form-group">
           <div class="form-label">어느 나라를 위해 쓸데없는 점수를 올릴까요?</div>
-          <div class="form-help" style="margin-bottom:14px;">실제 국적과 달라도 됩니다. 이건 어차피 쓸데없는 대회니까요.</div>
+          <div class="form-help" style="margin-bottom:12px;">실제 국적과 달라도 됩니다. 어차피 쓸데없는 대회니까요.</div>
           <div class="country-grid" id="countryGrid"></div>
         </div>
-        <div class="step-nav">
-          <button class="btn btn-primary" id="s1Next">다음 →</button>
-        </div>
+        <div class="step-nav"><button class="btn btn-primary" id="s1Next" style="flex:1;">다음 →</button></div>
       </div>
 
-      <!-- STEP 2: 닉네임 + 메시지 -->
       <div id="s2" class="hidden">
         <div class="form-group">
           <label class="form-label" for="nicknameInput">쓸데없는 역사에 남을 이름</label>
-          <input class="form-input" id="nicknameInput" maxlength="18"
-            placeholder="예: 돈니, 1000원순삭, 쓸데없는애국자" autocomplete="off" />
+          <input class="form-input" id="nicknameInput" maxlength="18" placeholder="예: 돈니, 쓸데없는애국자" autocomplete="off" />
           <div class="form-help">실명, 전화번호, 개인정보는 절대 입력하지 마세요.</div>
         </div>
         <div class="form-group">
-          <label class="form-label" for="msgInput">
-            한 줄 메시지 <span class="char-count">(<span id="msgCount">0</span>/70)</span>
-          </label>
-          <textarea class="form-textarea" id="msgInput" maxlength="70"
-            placeholder="예: 한국 1위 가자 ㅋㅋㅋ / 이게 왜 재밌는지 모르겠는데 일단 했습니다"></textarea>
+          <label class="form-label" for="msgInput">한 줄 메시지 <span class="char-count">(<span id="msgCount">0</span>/70)</span></label>
+          <textarea class="form-textarea" id="msgInput" maxlength="70" placeholder="예: 한국 1위 가자 ㅋㅋㅋ"></textarea>
         </div>
-        <label class="anon-toggle">
-          <input type="checkbox" id="anonCheck" />
-          <span>익명으로 참여 (닉네임 대신 "익명"으로 표시)</span>
-        </label>
+        <label class="anon-toggle"><input type="checkbox" id="anonCheck" /><span>익명으로 참여하기</span></label>
         <div class="step-nav">
           <button class="btn btn-ghost" id="s2Back">← 뒤로</button>
-          <button class="btn btn-primary" id="s2Next">다음 →</button>
+          <button class="btn btn-primary" style="flex:1;" id="s2Next">다음 →</button>
         </div>
       </div>
 
-      <!-- STEP 3: 참여 강도 -->
       <div id="s3" class="hidden">
         <div class="form-group">
           <div class="form-label">참여 강도 선택</div>
-          <div class="form-help" style="margin-bottom:14px;">
-            지금은 모두 무료입니다. 점수만 다릅니다.
-            <!-- 유료 전환 시: 각 옵션에 가격 표시 -->
-          </div>
+          <div class="form-help" style="margin-bottom:12px;">지금은 모두 무료입니다. 점수만 다릅니다.</div>
           <div class="tier-grid" id="tierGrid"></div>
         </div>
         <div class="step-nav">
           <button class="btn btn-ghost" id="s3Back">← 뒤로</button>
-          <button class="btn btn-primary" id="s3Next">다음 →</button>
+          <button class="btn btn-primary" style="flex:1;" id="s3Next">다음 →</button>
         </div>
       </div>
 
-      <!-- STEP 4: 확인 -->
       <div id="s4" class="hidden">
-        <div class="form-label" style="margin-bottom:14px;">마지막으로 확인해주세요</div>
+        <div class="form-label" style="margin-bottom:12px;">마지막으로 확인해주세요</div>
         <div class="summary-box" id="summaryBox"></div>
-        <label class="check-row" id="confirmCheck">
-          <input type="checkbox" id="understandChk" />
-          <span>이 참여가 완전히 쓸데없으며, 아무 일도 일어나지 않을 것임을 인정합니다.</span>
-        </label>
+        <label class="check-row"><input type="checkbox" id="understandChk" /><span>이 참여가 완전히 쓸데없으며, 아무 일도 일어나지 않을 것임을 인정합니다.</span></label>
         <div class="step-nav">
           <button class="btn btn-ghost" id="s4Back">← 뒤로</button>
-          <button class="btn btn-primary" id="s4Submit">참여 완료 →</button>
+          <button class="btn btn-primary" style="flex:1;" id="s4Submit">참여 완료 →</button>
         </div>
       </div>
 
-      <!-- STEP 5: 성공 + 인증서 -->
       <div id="s5" class="hidden">
         <div class="certificate" id="certCard">
           <div class="cert-label">Certificate of Useless Participation</div>
@@ -1314,107 +482,155 @@
           <div class="cert-body" id="certBody"></div>
           <div class="cert-meta" id="certMeta"></div>
         </div>
-
         <div class="summary-box">
           <div class="summary-row"><span>결과</span><strong>아무 일도 일어나지 않았습니다.</strong></div>
           <div class="summary-row"><span>대신</span><strong>국가 랭킹은 올라갔습니다.</strong></div>
         </div>
-
-        <div class="step-nav" style="flex-wrap:wrap;">
-          <button class="btn btn-primary" id="shareTextBtn">공유 문구 복사 📋</button>
-          <button class="btn btn-ghost" id="downloadCertBtn">인증서 저장 🖼️</button>
-          <button class="btn btn-ghost btn-sm" id="againBtn" style="opacity:.7;">한 번 더</button>
+        <div class="share-group">
+          <button class="btn btn-share-copy" id="shareTextBtn">🔗 링크 복사</button>
+          <button class="btn btn-share-x" id="shareXBtn">𝕏 X에 공유</button>
+        </div>
+        <div class="step-nav">
+          <button class="btn btn-ghost" id="downloadCertBtn" style="flex:1;">인증서 저장 🖼️</button>
+          <button class="btn btn-ghost btn-sm" id="againBtn" style="opacity:.65;">한 번 더</button>
         </div>
       </div>
-
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 /* ─── SUPABASE ─── */
-const SUPABASE_URL = "https://nufiixhgwzsaabfohmcz.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im51ZmlpeGhnd3pzYWFiZm9obWN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NTY2NzAsImV4cCI6MjA5NjIzMjY3MH0.p87rUqL7_r_HzJFOR4R1BCR-zf2hgDHJ1Uxn_bBqoZA";
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const SUPABASE_URL="https://nufiixhgwzsaabfohmcz.supabase.co";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im51ZmlpeGhnd3pzYWFiZm9obWN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NTY2NzAsImV4cCI6MjA5NjIzMjY3MH0.p87rUqL7_r_HzJFOR4R1BCR-zf2hgDHJ1Uxn_bBqoZA";
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-/* ─── 상수 ─── */
-const COUNTRIES = [
-  { code:"KR", kr:"대한민국", en:"South Korea",    flag:"🇰🇷" },
-  { code:"US", kr:"미국",     en:"United States",  flag:"🇺🇸" },
-  { code:"JP", kr:"일본",     en:"Japan",           flag:"🇯🇵" },
-  { code:"CN", kr:"중국",     en:"China",           flag:"🇨🇳" },
-  { code:"GB", kr:"영국",     en:"United Kingdom",  flag:"🇬🇧" },
-  { code:"DE", kr:"독일",     en:"Germany",         flag:"🇩🇪" },
-  { code:"FR", kr:"프랑스",   en:"France",          flag:"🇫🇷" },
-  { code:"BR", kr:"브라질",   en:"Brazil",          flag:"🇧🇷" },
-  { code:"CA", kr:"캐나다",   en:"Canada",          flag:"🇨🇦" },
-  { code:"AU", kr:"호주",     en:"Australia",       flag:"🇦🇺" },
-  { code:"IN", kr:"인도",     en:"India",           flag:"🇮🇳" },
-  { code:"SG", kr:"싱가포르", en:"Singapore",       flag:"🇸🇬" },
-  { code:"OT", kr:"기타",     en:"Other",           flag:"🌍" },
+/* ─── 다국어 ─── */
+const I18N={
+  KR:{
+    join:"무료로 참여하기 →",
+    taunt_none:"대한민국은 아직 아무것도 안 했습니다.\n한국인들 이런 거 못 참지 않나요?",
+    taunt_first:"현재 대한민국은 1위입니다.\n이 정도면 꽤 쓸데없는 나라입니다. 방심하면 바로 밀립니다.",
+    taunt_behind:(rank,gap)=>`현재 대한민국은 ${rank}위입니다.\n1위까지 ${gap.toLocaleString()}점 남았습니다. 한국인들 이런 거 못 참지 않나요?`,
+    kr_btn:"🇰🇷 한국 대표로 바로 참여하기",
+    share_text:(nick,flag,name,pts)=>`${nick}님이 ${flag} ${name}의 쓸데없는 랭킹에 +${pts}점을 추가했습니다.\n결과: 아무 일도 일어나지 않았습니다.\n#UselessLab #쓸데없는월드컵`,
+    share_x:(nick,flag,name,pts)=>`${nick}님이 ${flag} ${name}에 +${pts}점!\n결과: 아무 일도 일어나지 않았습니다 😂\n#UselessLab useless-lab.vercel.app`,
+  },
+  JP:{
+    join:"無料で参加する →",
+    taunt_none:"日本はまだ何もしていません。\n日本人ならこれを我慢できますか？",
+    taunt_first:"現在、日本は1位です。\nかなり無駄な国ですね。油断したらすぐに抜かれます。",
+    taunt_behind:(rank,gap)=>`現在、日本は${rank}位です。\n1位まであと${gap.toLocaleString()}ポイント。日本人なら黙っていられませんよね？`,
+    kr_btn:"🇯🇵 日本代表として参加する",
+    share_text:(nick,flag,name,pts)=>`${nick} が ${flag} ${name} のランキングに +${pts}pt 追加！\n結果：何も起きませんでした。\n#UselessLab`,
+    share_x:(nick,flag,name,pts)=>`${nick} が ${flag} ${name} に +${pts}pt！\n結果：何も起きませんでした 😂\n#UselessLab useless-lab.vercel.app`,
+  },
+  EN:{
+    join:"Join for Free →",
+    taunt_none:"Your country hasn't done anything yet.\nCan't you let that slide?",
+    taunt_first:"Your country is #1.\nPretty useless. But don't get comfortable.",
+    taunt_behind:(rank,gap)=>`Your country is ranked #${rank}.\n${gap.toLocaleString()} points behind 1st. Can you let that slide?`,
+    kr_btn:"🏳️ Join as My Country's Rep",
+    share_text:(nick,flag,name,pts)=>`${nick} added +${pts}pts to ${flag} ${name}'s useless ranking.\nResult: Absolutely nothing happened.\n#UselessLab`,
+    share_x:(nick,flag,name,pts)=>`${nick} added +${pts}pts to ${flag} ${name}!\nResult: Absolutely nothing happened 😂\n#UselessLab useless-lab.vercel.app`,
+  },
+};
+
+/* ─── 국가 목록 ─── */
+const COUNTRIES=[
+  {code:"KR",kr:"대한민국",en:"South Korea",jp:"韓国",flag:"🇰🇷"},
+  {code:"US",kr:"미국",en:"United States",jp:"アメリカ",flag:"🇺🇸"},
+  {code:"JP",kr:"일본",en:"Japan",jp:"日本",flag:"🇯🇵"},
+  {code:"CN",kr:"중국",en:"China",jp:"中国",flag:"🇨🇳"},
+  {code:"GB",kr:"영국",en:"United Kingdom",jp:"イギリス",flag:"🇬🇧"},
+  {code:"DE",kr:"독일",en:"Germany",jp:"ドイツ",flag:"🇩🇪"},
+  {code:"FR",kr:"프랑스",en:"France",jp:"フランス",flag:"🇫🇷"},
+  {code:"BR",kr:"브라질",en:"Brazil",jp:"ブラジル",flag:"🇧🇷"},
+  {code:"CA",kr:"캐나다",en:"Canada",jp:"カナダ",flag:"🇨🇦"},
+  {code:"AU",kr:"호주",en:"Australia",jp:"オーストラリア",flag:"🇦🇺"},
+  {code:"IN",kr:"인도",en:"India",jp:"インド",flag:"🇮🇳"},
+  {code:"SG",kr:"싱가포르",en:"Singapore",jp:"シンガポール",flag:"🇸🇬"},
+  {code:"OT",kr:"기타",en:"Other",jp:"その他",flag:"🌍"},
 ];
 
-const TIERS = [
-  { id:"basic",     name:"기본 낭비",   pts:1,  desc:"그냥 참여합니다. 이유는 없습니다.",
-    price_free:"무료", price_krw:1000,  price_usd:1  },
-  { id:"serious",   name:"진심 낭비",   pts:3,  desc:"진심으로 쓸데없이 참여합니다.", badge:"추천",
-    price_free:"무료", price_krw:3000,  price_usd:3  },
-  { id:"boost",     name:"국가 부스터", pts:10, desc:"내 나라를 위한 쓸데없는 희생.",
-    price_free:"무료", price_krw:10000, price_usd:10 },
-  { id:"legendary", name:"전설의 바보", pts:50, desc:"역사에 이름을 남깁니다. 아무도 모르게.", badge:"레전드",
-    price_free:"무료", price_krw:50000, price_usd:50 },
+const TIERS=[
+  {id:"basic",name:"기본 낭비",name_en:"Basic Waste",name_jp:"基本的な無駄",pts:1,desc:"그냥 참여합니다. 이유는 없습니다.",desc_en:"Just joining. No reason.",desc_jp:"ただ参加します。理由はありません。",price_krw:1000,price_usd:1},
+  {id:"serious",name:"진심 낭비",name_en:"Serious Waste",name_jp:"本気の無駄",pts:3,desc:"진심으로 쓸데없이 참여합니다.",desc_en:"Seriously joining this useless thing.",desc_jp:"本気で無駄に参加します。",badge:"추천",badge_en:"Popular",badge_jp:"人気",price_krw:3000,price_usd:3},
+  {id:"boost",name:"국가 부스터",name_en:"National Boost",name_jp:"国家ブースト",pts:10,desc:"내 나라를 위한 쓸데없는 희생.",desc_en:"Useless sacrifice for my country.",desc_jp:"国のための無駄な犠牲。",price_krw:10000,price_usd:10},
+  {id:"legendary",name:"전설의 바보",name_en:"Legendary Idiot",name_jp:"伝説のバカ",pts:50,desc:"역사에 이름을 남깁니다. 아무도 모르게.",desc_en:"Leave your mark. Nobody will notice.",desc_jp:"歴史に名を残します。誰も気づかずに。",badge:"레전드",badge_en:"Legend",badge_jp:"レジェンド",price_krw:50000,price_usd:50},
 ];
 
-/* ─── STATE ─── */
-let entries = [];
-let form = { country:"KR", nick:"", msg:"", anon:false, tierId:"basic" };
-let currentStep = 1;
+/* ─── 상태 ─── */
+let entries=[];
+let form={country:"KR",nick:"",msg:"",anon:false,tierId:"basic"};
+let currentStep=1;
+let userLang="KR"; // KR / JP / EN
+let userCountryCode="KR";
+let currentPanelCountry=null;
 
-/* ─── HELPERS ─── */
-const $ = id => document.getElementById(id);
-function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
-function getCountry(code){ return COUNTRIES.find(c=>c.code===code)||COUNTRIES[COUNTRIES.length-1]; }
-function getTier(id){ return TIERS.find(t=>t.id===id)||TIERS[0]; }
+/* ─── 헬퍼 ─── */
+const $=id=>document.getElementById(id);
+function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function getC(code){return COUNTRIES.find(c=>c.code===code)||COUNTRIES[COUNTRIES.length-1];}
+function getT(id){return TIERS.find(t=>t.id===id)||TIERS[0];}
+function cName(c){return userLang==="KR"?c.kr:userLang==="JP"?c.jp:c.en;}
+function tName(t){return userLang==="KR"?t.name:userLang==="JP"?t.name_jp:t.name_en;}
+function tDesc(t){return userLang==="KR"?t.desc:userLang==="JP"?t.desc_jp:t.desc_en;}
+function tBadge(t){if(!t.badge)return"";return userLang==="KR"?t.badge:userLang==="JP"?t.badge_jp:t.badge_en;}
+function L(){return I18N[userLang]||I18N.EN;}
 
 function timeAgo(ts){
   const d=Math.max(1,Math.floor((Date.now()-new Date(ts).getTime())/1000));
-  if(d<60) return "방금 전";
-  if(d<3600) return Math.floor(d/60)+"분 전";
-  if(d<86400) return Math.floor(d/3600)+"시간 전";
-  return Math.floor(d/86400)+"일 전";
+  if(d<60)return userLang==="KR"?"방금 전":userLang==="JP"?"たった今":"just now";
+  if(d<3600)return userLang==="KR"?Math.floor(d/60)+"분 전":userLang==="JP"?Math.floor(d/60)+"分前":Math.floor(d/60)+"m ago";
+  if(d<86400)return userLang==="KR"?Math.floor(d/3600)+"시간 전":userLang==="JP"?Math.floor(d/3600)+"時間前":Math.floor(d/3600)+"h ago";
+  return userLang==="KR"?Math.floor(d/86400)+"일 전":userLang==="JP"?Math.floor(d/86400)+"日前":Math.floor(d/86400)+"d ago";
 }
 
 function showToast(msg){
-  const t=$("toast"); t.textContent=msg;
-  t.classList.add("show");
-  setTimeout(()=>t.classList.remove("show"),2000);
+  const t=$("toast");t.textContent=msg;t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),2200);
 }
 
-/* ─── SUPABASE 함수 ─── */
+/* ─── IP 감지 ─── */
+async function detectCountry(){
+  try{
+    const r=await fetch("https://ipapi.co/json/",{signal:AbortSignal.timeout(3000)});
+    const d=await r.json();
+    userCountryCode=d.country_code||"KR";
+    const lang=d.country_code==="KR"?"KR":d.country_code==="JP"?"JP":"EN";
+    userLang=lang;
+    form.country=userCountryCode;
+    // 도발 카드 버튼 업데이트
+    $("krJoinBtn").textContent=L().kr_btn.replace("🏳️",getC(userCountryCode).flag);
+  } catch(e){
+    userCountryCode="KR"; userLang="KR";
+  }
+}
+
+/* ─── SUPABASE ─── */
 async function fetchEntries(){
-  const {data,error} = await sb.from("entries").select("*").order("created_at",{ascending:false}).limit(100);
-  if(error){ console.error(error); return; }
-  entries = data||[];
+  const{data,error}=await sb.from("entries").select("*").order("created_at",{ascending:false}).limit(200);
+  if(error){console.error(error);return;}
+  entries=data||[];
   render();
 }
 
 async function insertEntry(payload){
-  const {data,error} = await sb.from("entries").insert([payload]).select().single();
-  if(error){ console.error(error); showToast("오류가 발생했습니다."); return null; }
+  const{data,error}=await sb.from("entries").insert([payload]).select().single();
+  if(error){console.error(error);showToast("오류가 발생했습니다.");return null;}
   entries.unshift(data);
   render();
   return data;
 }
 
-/* ─── 실시간 구독 ─── */
 function subscribeRealtime(){
   sb.channel("entries-live")
     .on("postgres_changes",{event:"INSERT",schema:"public",table:"entries"},payload=>{
-      const exists = entries.find(e=>e.id===payload.new.id);
-      if(!exists){ entries.unshift(payload.new); render(); }
+      const exists=entries.find(e=>e.id===payload.new.id);
+      if(!exists){entries.unshift(payload.new);render();}
     })
     .subscribe();
 }
@@ -1422,9 +638,9 @@ function subscribeRealtime(){
 /* ─── 랭킹 계산 ─── */
 function getRankings(){
   const map={};
-  COUNTRIES.forEach(c=>{ map[c.code]={...c,pts:0,count:0}; });
+  COUNTRIES.forEach(c=>{map[c.code]={...c,pts:0,count:0};});
   entries.forEach(e=>{
-    if(!map[e.country_code]) map[e.country_code]={...getCountry("OT"),pts:0,count:0};
+    if(!map[e.country_code])map[e.country_code]={...getC("OT"),pts:0,count:0};
     map[e.country_code].pts+=Number(e.points||1);
     map[e.country_code].count++;
   });
@@ -1449,153 +665,204 @@ function renderStats(){
 }
 
 function renderRanking(){
-  const list=$("rankList");
-  list.innerHTML="";
+  const list=$("rankList");list.innerHTML="";
   getRankings().forEach((item,i)=>{
-    if(item.pts<=0&&i>4) return;
+    if(item.pts<=0&&i>4)return;
     const cls=i===0?"gold":i===1?"silver":i===2?"bronze":"";
     const rowCls=i===0?"rank-top1":i===1?"rank-top2":i===2?"rank-top3":"";
     const el=document.createElement("div");
     el.className=`rank-item ${rowCls}`;
-    el.onclick=()=>openModal(item.code);
+    el.setAttribute("role","button");
+    el.setAttribute("tabindex","0");
+    el.onclick=()=>openCountryPanel(item.code);
+    el.onkeydown=e=>{if(e.key==="Enter")openCountryPanel(item.code);};
     el.innerHTML=`
       <div class="rank-no ${cls}">${i+1}</div>
       <div>
-        <div class="rank-name">${item.flag} ${item.kr} <span style="color:var(--muted);font-size:13px;font-weight:600;">${item.en}</span></div>
-        <div class="rank-sub">${item.count.toLocaleString()}명 참여</div>
+        <div class="rank-name">${item.flag} ${cName(item)}</div>
+        <div class="rank-sub">${item.count.toLocaleString()}${userLang==="KR"?"명 참여":userLang==="JP"?"人参加":" participants"}</div>
       </div>
-      <div class="rank-pts">${item.pts.toLocaleString()} <small>useless pts</small></div>`;
+      <div class="rank-pts">${item.pts.toLocaleString()}<small>useless pts</small></div>`;
     list.appendChild(el);
   });
 }
 
-function renderLogs(){
+function renderLogs(isNew=false){
   const list=$("logList");
+  const prev=list.innerHTML;
   list.innerHTML="";
   entries.slice(0,20).forEach((e,i)=>{
-    const c=getCountry(e.country_code);
+    const c=getC(e.country_code);
     const el=document.createElement("div");
-    el.className="log-item"+(i===0?" log-new":"");
-    el.innerHTML=`${timeAgo(e.created_at)} · ${c.flag} <strong>${esc(e.nickname||"익명")}</strong>님이 ${c.kr}에 <strong>+${e.points}</strong>점 추가<br /><span style="opacity:.7">${esc(e.message||"아무 말도 남기지 않았습니다.")}</span>`;
+    el.className="log-item"+(i===0&&isNew?" log-new":"");
+    const nick=e.is_anonymous?"익명":(e.nickname||"익명");
+    el.innerHTML=`${timeAgo(e.created_at)} · ${c.flag} <strong>${esc(nick)}</strong> → ${cName(c)} <strong>+${e.points}pts</strong><br /><span style="opacity:.7">${esc(e.message||"—")}</span>`;
     list.appendChild(el);
   });
 }
 
 function renderTaunt(){
   const r=getRankings();
-  const krIdx=r.findIndex(x=>x.code==="KR");
-  const kr=r[krIdx]; const first=r[0];
+  const myIdx=r.findIndex(x=>x.code===userCountryCode);
+  const my=r[myIdx]; const first=r[0];
+  const l=L();
   let txt;
-  if(!kr||kr.pts===0){
-    txt="대한민국은 아직 아무것도 안 했습니다.<br />한국인들 이런 거 못 참지 않나요?";
-  } else if(kr.code===first.code){
-    txt="현재 대한민국은 1위입니다.<br />이 정도면 꽤 쓸데없는 나라입니다. 방심하면 바로 밀립니다.";
+  if(!my||my.pts===0){
+    txt=l.taunt_none;
+  } else if(my.code===first.code){
+    txt=l.taunt_first;
   } else {
-    const gap=first.pts-kr.pts+1;
-    txt=`현재 대한민국은 <strong>${krIdx+1}위</strong>입니다.<br />1위까지 <strong>${gap.toLocaleString()}점</strong> 남았습니다. 한국인들 이런 거 못 참지 않나요?`;
+    txt=l.taunt_behind(myIdx+1,first.pts-my.pts+1);
   }
-  $("tauntText").innerHTML=txt;
+  $("tauntText").innerHTML=txt.replace(/\n/g,"<br/>");
+  // 도발 버튼 업데이트
+  const c=getC(userCountryCode);
+  $("krJoinBtn").innerHTML=`${c.flag} ${userLang==="KR"?c.kr+"대표로 바로 참여하기":userLang==="JP"?c.jp+"代表として参加する":c.en+" — Join Now"}`;
 }
+
+/* ─── 국가 상세 패널 ─── */
+function openCountryPanel(code){
+  currentPanelCountry=code;
+  const r=getRankings();
+  const rank=r.findIndex(x=>x.code===code)+1;
+  const item=r.find(x=>x.code===code)||{pts:0,count:0};
+  const c=getC(code);
+
+  $("panelFlag").textContent=c.flag;
+  $("panelName").textContent=cName(c);
+  $("panelRank").textContent=`${rank}${userLang==="KR"?"위":userLang==="JP"?"位":"th place"}`;
+  $("panelPts").textContent=item.pts.toLocaleString();
+  $("panelCount").textContent=item.count.toLocaleString();
+  $("panelAvg").textContent=item.count>0?(item.pts/item.count).toFixed(1):"0";
+
+  const logs=entries.filter(e=>e.country_code===code).slice(0,10);
+  const logList=$("panelLogList");
+  logList.innerHTML="";
+  if(!logs.length){
+    logList.innerHTML=`<div style="color:var(--muted);font-size:13px;padding:12px;">${userLang==="KR"?"아직 참여 기록이 없습니다.":userLang==="JP"?"まだ参加記録がありません。":"No entries yet."}</div>`;
+  } else {
+    logs.forEach(e=>{
+      const el=document.createElement("div");
+      el.className="panel-log-item";
+      const nick=e.is_anonymous?"익명":(e.nickname||"익명");
+      el.innerHTML=`${timeAgo(e.created_at)} · <strong>${esc(nick)}</strong> +${e.points}pts<br /><span style="opacity:.7">${esc(e.message||"—")}</span>`;
+      logList.appendChild(el);
+    });
+  }
+
+  $("panelJoinBtn").textContent=userLang==="KR"?`${c.flag} ${c.kr}으로 참여하기 →`:userLang==="JP"?`${c.flag} ${c.jp}で参加する →`:`${c.flag} Join as ${c.en} →`;
+  $("countryPanel").classList.add("open");
+  document.body.style.overflow="hidden";
+}
+
+function closeCountryPanel(){
+  $("countryPanel").classList.remove("open");
+  document.body.style.overflow="";
+  currentPanelCountry=null;
+}
+
+$("closePanelBtn").onclick=closeCountryPanel;
+$("countryPanel").addEventListener("click",e=>{if(e.target===$("countryPanel"))closeCountryPanel();});
+$("panelJoinBtn").onclick=()=>{closeCountryPanel();openModal(currentPanelCountry||userCountryCode);};
 
 /* ─── MODAL ─── */
 function openModal(defaultCountry){
-  form={country:defaultCountry||"KR",nick:"",msg:"",anon:false,tierId:"basic"};
-  renderCountryGrid(); renderTierGrid();
-  $("nicknameInput").value=""; $("msgInput").value="";
-  $("anonCheck").checked=false; $("understandChk").checked=false;
+  form={country:defaultCountry||userCountryCode,nick:"",msg:"",anon:false,tierId:"basic"};
+  renderCountryGrid();renderTierGrid();
+  $("nicknameInput").value="";$("msgInput").value="";
+  $("anonCheck").checked=false;$("understandChk").checked=false;
   $("msgCount").textContent="0";
   goStep(1);
   $("joinModal").classList.add("open");
+  document.body.style.overflow="hidden";
 }
 
-function closeModal(){ $("joinModal").classList.remove("open"); }
+function closeModal(){
+  $("joinModal").classList.remove("open");
+  document.body.style.overflow="";
+}
 
 function goStep(n){
   currentStep=n;
-  [1,2,3,4,5].forEach(i=>{ $("s"+i).classList.toggle("hidden",i!==n); });
-  [1,2,3,4].forEach(i=>{ $("p"+i).classList.toggle("on",i<=Math.min(n,4)); });
-  const titles={1:"국가 선택",2:"닉네임 입력",3:"참여 강도 선택",4:"마지막 확인",5:"참여 완료"};
-  $("modalTitleText").textContent=titles[n]||"무료 참여하기";
+  [1,2,3,4,5].forEach(i=>{$("s"+i).classList.toggle("hidden",i!==n);});
+  [1,2,3,4].forEach(i=>{$("p"+i).classList.toggle("on",i<=Math.min(n,4));});
+  const titles={
+    1:userLang==="KR"?"국가 선택":userLang==="JP"?"国を選択":"Select Country",
+    2:userLang==="KR"?"닉네임 입력":userLang==="JP"?"ニックネーム":"Nickname",
+    3:userLang==="KR"?"참여 강도 선택":userLang==="JP"?"参加レベル":"Participation Level",
+    4:userLang==="KR"?"마지막 확인":userLang==="JP"?"最終確認":"Final Confirm",
+    5:userLang==="KR"?"참여 완료":userLang==="JP"?"参加完了":"Done!",
+  };
+  $("modalTitleText").textContent=titles[n]||"Join";
 }
 
 function renderCountryGrid(){
-  const g=$("countryGrid"); g.innerHTML="";
+  const g=$("countryGrid");g.innerHTML="";
   COUNTRIES.forEach(c=>{
     const b=document.createElement("button");
     b.className="country-btn"+(form.country===c.code?" selected":"");
     b.type="button";
-    b.innerHTML=`<span class="country-flag">${c.flag}</span>${c.kr}<span class="country-sub">${c.en}</span>`;
-    b.onclick=()=>{ form.country=c.code; renderCountryGrid(); };
+    b.innerHTML=`<span class="country-flag">${c.flag}</span>${cName(c)}<span class="country-sub">${c.en}</span>`;
+    b.onclick=()=>{form.country=c.code;renderCountryGrid();};
     g.appendChild(b);
   });
 }
 
 function renderTierGrid(){
-  const g=$("tierGrid"); g.innerHTML="";
+  const g=$("tierGrid");g.innerHTML="";
   TIERS.forEach(t=>{
     const b=document.createElement("button");
     b.className="tier-card"+(form.tierId===t.id?" selected":"");
     b.type="button";
+    const badge=tBadge(t);
     b.innerHTML=`
-      <div class="tier-name">${t.name}${t.badge?`<span class="tier-badge">${t.badge}</span>`:""}</div>
+      <div class="tier-name">${tName(t)}${badge?`<span class="tier-badge">${badge}</span>`:""}</div>
       <div class="tier-pts">+${t.pts}<small> pts</small></div>
-      <div class="tier-desc">${t.desc}</div>`;
-    b.onclick=()=>{ form.tierId=t.id; renderTierGrid(); };
+      <div class="tier-desc">${tDesc(t)}</div>`;
+    b.onclick=()=>{form.tierId=t.id;renderTierGrid();};
     g.appendChild(b);
   });
 }
 
 function buildSummary(){
-  const c=getCountry(form.country); const t=getTier(form.tierId);
-  const nick=form.anon?"익명":(form.nick.trim()||"이름 없는 참여자");
-  const msg=$("msgInput").value.trim()||"아무 말도 남기지 않았습니다.";
+  const c=getC(form.country);const t=getT(form.tierId);
+  const nick=form.anon?(userLang==="KR"?"익명":userLang==="JP"?"匿名":"Anonymous"):(form.nick.trim()||(userLang==="KR"?"이름 없는 참여자":"Anonymous"));
+  const msg=$("msgInput").value.trim()||(userLang==="KR"?"아무 말도 남기지 않았습니다.":userLang==="JP"?"何も言いませんでした。":"Nothing to say.");
   $("summaryBox").innerHTML=`
-    <div class="summary-row"><span>국가</span><strong>${c.flag} ${c.kr}</strong></div>
-    <div class="summary-row"><span>닉네임</span><strong>${esc(nick)}</strong></div>
-    <div class="summary-row"><span>메시지</span><strong>${esc(msg)}</strong></div>
-    <div class="summary-row"><span>참여 강도</span><strong>${t.name} · +${t.pts}점</strong></div>
-    <div class="summary-row"><span>결제</span><strong style="color:var(--green);">무료 테스트</strong></div>`;
+    <div class="summary-row"><span>${userLang==="KR"?"국가":userLang==="JP"?"国":"Country"}</span><strong>${c.flag} ${cName(c)}</strong></div>
+    <div class="summary-row"><span>${userLang==="KR"?"닉네임":userLang==="JP"?"ニックネーム":"Nickname"}</span><strong>${esc(nick)}</strong></div>
+    <div class="summary-row"><span>${userLang==="KR"?"메시지":userLang==="JP"?"メッセージ":"Message"}</span><strong>${esc(msg)}</strong></div>
+    <div class="summary-row"><span>${userLang==="KR"?"참여 강도":userLang==="JP"?"参加レベル":"Level"}</span><strong>${tName(t)} · +${t.pts}pts</strong></div>
+    <div class="summary-row"><span>${userLang==="KR"?"결제":userLang==="JP"?"支払い":"Payment"}</span><strong style="color:var(--green)">${userLang==="KR"?"무료 테스트":userLang==="JP"?"無料テスト":"Free (Test)"}</strong></div>`;
 }
 
 async function submitEntry(){
-  const c=getCountry(form.country); const t=getTier(form.tierId);
-  const nick=form.anon?"익명":($("nicknameInput").value.trim()||"이름 없는 참여자");
-  const msg=$("msgInput").value.trim()||randomMsg(c.code);
-
+  const c=getC(form.country);const t=getT(form.tierId);
+  const nick=form.anon?null:($("nicknameInput").value.trim()||null);
+  const msg=$("msgInput").value.trim()||null;
   $("s4Submit").disabled=true;
-  $("s4Submit").textContent="참여 중...";
-
-  const payload={
-    country_code: c.code,
-    nickname: form.anon ? null : nick,
-    is_anonymous: form.anon,
-    message: msg,
-    points: t.pts,
-    tier_id: t.id,
-  };
-
-  const data = await insertEntry(payload);
+  $("s4Submit").textContent=userLang==="KR"?"참여 중...":userLang==="JP"?"参加中...":"Joining...";
+  const data=await insertEntry({country_code:c.code,nickname:nick,is_anonymous:form.anon,message:msg,points:t.pts,tier_id:t.id});
   $("s4Submit").disabled=false;
-  $("s4Submit").textContent="참여 완료 →";
-
-  if(data){
-    buildCertificate({...data, nick, c, t});
-    goStep(5);
-  }
+  $("s4Submit").textContent=userLang==="KR"?"참여 완료 →":userLang==="JP"?"参加完了 →":"Done →";
+  if(data){buildCertificate(data);goStep(5);}
 }
 
 function buildCertificate(e){
-  const c=getCountry(e.country_code);
-  const nick=e.is_anonymous?"익명":(e.nickname||"이름 없는 참여자");
-  $("certBody").innerHTML=`<strong>${esc(nick)}</strong> 님은<br />${c.flag} ${c.kr}의 쓸데없는 랭킹에<br /><strong>+${e.points}점</strong>을 기여했습니다.`;
+  const c=getC(e.country_code);
+  const nick=e.is_anonymous?(userLang==="KR"?"익명":userLang==="JP"?"匿名":"Anonymous"):(e.nickname||(userLang==="KR"?"이름 없는 참여자":"Anonymous"));
+  if(userLang==="KR"){
+    $("certBody").innerHTML=`<strong>${esc(nick)}</strong> 님은<br />${c.flag} ${c.kr}의 쓸데없는 랭킹에<br /><strong>+${e.points}점</strong>을 기여했습니다.`;
+  } else if(userLang==="JP"){
+    $("certBody").innerHTML=`<strong>${esc(nick)}</strong> さんが<br />${c.flag} ${c.jp}の無駄なランキングに<br /><strong>+${e.points}pt</strong>を貢献しました。`;
+  } else {
+    $("certBody").innerHTML=`<strong>${esc(nick)}</strong> contributed<br /><strong>+${e.points}pts</strong> to ${c.flag} ${c.en}'s<br />useless ranking.`;
+  }
   $("certMeta").innerHTML=`<div>Certificate No. #${String(e.id).padStart(6,"0")}</div><div>Season 1 · Useless World Cup</div><div>Result: Absolutely nothing happened.</div>`;
-  const shareText=`${nick}님이 ${c.flag} ${c.kr}의 쓸데없는 랭킹에 +${e.points}점을 추가했습니다.\n결과: 아무 일도 일어나지 않았습니다.\n#UselessLab #쓸데없는월드컵`;
-  $("shareTextBtn").dataset.share=shareText;
-}
-
-function randomMsg(){
-  const pool=["아무 이유 없이 참여했습니다.","이게 왜 재밌는지 모르겠는데 일단 했습니다.","나 혼자 쓸데없으면 억울해서 친구도 부를 겁니다.","결과는 없지만 기록은 남았습니다.","국가 랭킹 올리러 왔습니다."];
-  return pool[Math.floor(Math.random()*pool.length)];
+  const shareText=L().share_text(nick,c.flag,cName(c),e.points);
+  const shareX=L().share_x(nick,c.flag,cName(c),e.points);
+  $("shareTextBtn").dataset.share=location.href;
+  $("shareXBtn").dataset.share=shareX;
 }
 
 /* ─── 인증서 저장 ─── */
@@ -1604,70 +871,78 @@ function downloadCertificate(){
   const r=cert.getBoundingClientRect();
   const sc=2;
   const cv=document.createElement("canvas");
-  cv.width=Math.floor(r.width*sc); cv.height=Math.floor(r.height*sc);
+  cv.width=Math.floor(r.width*sc);cv.height=Math.floor(r.height*sc);
   const ctx=cv.getContext("2d");
   const grd=ctx.createLinearGradient(0,0,cv.width,cv.height);
-  grd.addColorStop(0,"#6ee7b7"); grd.addColorStop(.55,"#93c5fd"); grd.addColorStop(1,"#fda4af");
-  ctx.fillStyle=grd;
-  rrRect(ctx,0,0,cv.width,cv.height,40*sc); ctx.fill();
-  ctx.fillStyle="#06121e"; ctx.textBaseline="top";
+  grd.addColorStop(0,"#6ee7b7");grd.addColorStop(.55,"#93c5fd");grd.addColorStop(1,"#fda4af");
+  ctx.fillStyle=grd;rrRect(ctx,0,0,cv.width,cv.height,40*sc);ctx.fill();
+  ctx.fillStyle="#06121e";ctx.textBaseline="top";
   const lines=[
     ["Certificate of Useless Participation",11,"800",32,28],
-    ["쓸데없는",42,"950",32,72],["참여 증명서",42,"950",32,126],
-    [$("certBody").innerText,17,"750",32,210],[$("certMeta").innerText,13,"800",32,320],
+    [$("certBody").innerText.split("\n")[0],42,"950",32,72],
+    [$("certBody").innerText,17,"750",32,160],
+    [$("certMeta").innerText,13,"800",32,300],
   ];
   lines.forEach(([txt,sz,w,x,y])=>{
     ctx.font=`${w} ${sz*sc}px -apple-system,BlinkMacSystemFont,sans-serif`;
-    mlText(ctx,txt,x*sc,y*sc,(cv.width-60*sc),sz*1.5*sc);
+    mlText(ctx,txt,x*sc,y*sc,(cv.width-60*sc),sz*1.6*sc);
   });
   const a=document.createElement("a");
   a.download="useless-lab-certificate.png";
-  a.href=cv.toDataURL("image/png"); a.click();
+  a.href=cv.toDataURL("image/png");a.click();
 }
 
 function rrRect(ctx,x,y,w,h,r){
-  ctx.beginPath(); ctx.moveTo(x+r,y);
-  ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
-  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+  ctx.beginPath();ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
 }
-
 function mlText(ctx,text,x,y,maxW,lh){
   String(text).split("\n").forEach(raw=>{
-    const words=raw.split(" "); let line="";
-    words.forEach(w=>{ const test=line?line+" "+w:w; if(ctx.measureText(test).width>maxW&&line){ctx.fillText(line,x,y);y+=lh;line=w;}else{line=test;} });
-    ctx.fillText(line,x,y); y+=lh;
+    const words=raw.split(" ");let line="";
+    words.forEach(w=>{const test=line?line+" "+w:w;if(ctx.measureText(test).width>maxW&&line){ctx.fillText(line,x,y);y+=lh;line=w;}else{line=test;}});
+    ctx.fillText(line,x,y);y+=lh;
   });
 }
 
 /* ─── 이벤트 ─── */
-["heroJoinBtn","navJoinBtn","expJoinBtn"].forEach(id=>{ $(id).onclick=()=>openModal("KR"); });
-$("krJoinBtn").onclick=()=>openModal("KR");
+["heroJoinBtn","navJoinBtn","expJoinBtn"].forEach(id=>{$(id).onclick=()=>openModal(userCountryCode);});
+$("krJoinBtn").onclick=()=>openModal(userCountryCode);
 $("closeModalBtn").onclick=closeModal;
-$("joinModal").addEventListener("click",e=>{ if(e.target===$("joinModal")) closeModal(); });
-document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeModal(); });
+$("joinModal").addEventListener("click",e=>{if(e.target===$("joinModal"))closeModal();});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeModal();closeCountryPanel();}});
 $("s1Next").onclick=()=>goStep(2);
 $("s2Back").onclick=()=>goStep(1);
-$("s2Next").onclick=()=>{ form.nick=$("nicknameInput").value; form.anon=$("anonCheck").checked; goStep(3); };
+$("s2Next").onclick=()=>{form.nick=$("nicknameInput").value;form.anon=$("anonCheck").checked;goStep(3);};
 $("s3Back").onclick=()=>goStep(2);
-$("s3Next").onclick=()=>{ buildSummary(); goStep(4); };
+$("s3Next").onclick=()=>{buildSummary();goStep(4);};
 $("s4Back").onclick=()=>goStep(3);
 $("s4Submit").onclick=()=>{
-  if(!$("understandChk").checked){ showToast("쓸데없다는 사실을 먼저 인정해주세요 ✓"); return; }
+  if(!$("understandChk").checked){showToast(userLang==="KR"?"쓸데없다는 사실을 먼저 인정해주세요 ✓":userLang==="JP"?"無駄であることを認めてください ✓":"Please acknowledge the uselessness ✓");return;}
   submitEntry();
 };
-$("msgInput").addEventListener("input",e=>{ $("msgCount").textContent=e.target.value.length; });
+$("msgInput").addEventListener("input",e=>{$("msgCount").textContent=e.target.value.length;});
+
 $("shareTextBtn").onclick=async()=>{
-  const txt=$("shareTextBtn").dataset.share||"Useless Lab에 참여했습니다. #UselessLab";
-  try{ await navigator.clipboard.writeText(txt); showToast("공유 문구가 복사되었습니다 ✓"); }
-  catch{ showToast("복사 실패 — 직접 선택해 복사해주세요"); }
+  const url=$("shareTextBtn").dataset.share||location.href;
+  try{await navigator.clipboard.writeText(url);showToast(userLang==="KR"?"링크가 복사되었습니다 ✓":userLang==="JP"?"リンクをコピーしました ✓":"Link copied ✓");}
+  catch{showToast("Copy failed");}
 };
+
+$("shareXBtn").onclick=()=>{
+  const txt=encodeURIComponent($("shareXBtn").dataset.share||"#UselessLab");
+  window.open(`https://twitter.com/intent/tweet?text=${txt}`,"_blank");
+};
+
 $("downloadCertBtn").onclick=downloadCertificate;
-$("againBtn").onclick=()=>openModal(form.country);
-$("resetBtn").onclick=()=>{ showToast("서버 연동 버전에서는 초기화가 없습니다 ✓"); };
+$("againBtn").onclick=()=>openModal(userCountryCode);
 
 /* ─── INIT ─── */
-fetchEntries();
-subscribeRealtime();
+(async()=>{
+  await detectCountry();
+  await fetchEntries();
+  subscribeRealtime();
+})();
 </script>
 </body>
 </html>
